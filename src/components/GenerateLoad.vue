@@ -1,0 +1,180 @@
+/* eslint-disable prettier/prettier */
+<template>
+  <v-row no-gutters>
+    <v-dialog v-model="generateDialog" persistent max-width="500">
+      <template v-slot:activator="{ on, attrs }">
+        <v-col id="btn-col">
+          <v-btn
+            color="primary"
+            dark
+            v-bind="attrs"
+            v-on="on"
+            class="w-100 px-0"
+          >
+            Generate
+          </v-btn>
+        </v-col>
+      </template>
+      <v-card>
+        <v-card-title class="headline">
+          Generate Universe
+        </v-card-title>
+        <v-card-text>Generate a new universe.</v-card-text>
+
+        <v-container>
+          <v-form>
+            <v-file-input
+              truncate-length="15"
+              label="Password database"
+              @change="setFile"
+            ></v-file-input>
+
+            <v-slider
+              label="Amount used"
+              min="1"
+              :max="totalPasswords"
+              thumb-label="always"
+              v-model="amount"
+            >
+            </v-slider>
+          </v-form>
+        </v-container>
+        <v-row> </v-row>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="green darken-1" text @click="generateDialog = false">
+            Close
+          </v-btn>
+          <v-btn
+            color="green darken-1"
+            text
+            @click="
+              generateDialog = false;
+              generate();
+            "
+          >
+            Generate
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="loadDialog" persistent max-width="500">
+      <template v-slot:activator="{ on, attrs }">
+        <v-col id="btn-col">
+          <v-btn
+            color="primary"
+            dark
+            v-bind="attrs"
+            v-on="on"
+            class="w-100 px-0"
+          >
+            Load
+          </v-btn>
+        </v-col>
+      </template>
+      <v-card>
+        <v-card-title class="headline">
+          Generate Universe
+        </v-card-title>
+        <v-card-text>Load a universe.</v-card-text>
+
+        <v-container>
+          <v-form>
+            <v-file-input
+              truncate-length="15"
+              label="Password database"
+            ></v-file-input>
+
+            <v-slider
+              label="Percentage used"
+              min="1"
+              max="100"
+              thumb-label="always"
+            >
+            </v-slider>
+          </v-form>
+        </v-container>
+        <v-row> </v-row>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="green darken-1" text @click="loadDialog = false">
+            Close
+          </v-btn>
+          <v-btn
+            color="green darken-1"
+            text
+            @click="
+              loadDialog = false;
+              load();
+            "
+          >
+            Load
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-row>
+</template>
+
+<script>
+export default {
+  data: () => {
+    return {
+      generateDialog: false,
+      loadDialog: false,
+      file: null,
+      passwords: null,
+      totalPasswords: 1,
+      amount: null
+    };
+  },
+  methods: {
+    generate() {
+      console.log("Generating...");
+        this.$emit("generate", this.passwords.slice(0, this.amount), null);
+      // pass the params
+    },
+    load() {
+      console.log("Loading...");
+      this.$emit("load", "hi");
+    },
+
+    setFile(event) {
+      console.log(event);
+      this.file = event;
+
+      const reader = new FileReader();
+
+      reader.readAsText(this.file, "UTF-8");
+      reader.onload = evt => {
+        this.passwords = evt.target.result.split("\n");
+
+        this.totalPasswords = this.passwords.length;
+
+      };
+      reader.onerror = evt => {
+        console.error(evt);
+      };
+    }
+  }
+};
+</script>
+
+<style scoped>
+/* #button {
+    padding: 0;
+    width: 50%;
+} */
+
+v-btn {
+  padding: 0;
+  min-height: 100%;
+}
+
+#btn-col {
+  max-width: 50%;
+}
+</style>
