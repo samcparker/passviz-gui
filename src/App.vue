@@ -3,19 +3,24 @@
 
   
     <div class="d-flex" style="min-height: 100%">
-        <universe-container id="uc"/>
-        <div>
-        <v-row no-gutters>
-          Password Universe
-        </v-row>
+        <universe-container id="uc" :universes="universes"/>
+        <div id="right" class="d-flex flex-column" style="max-height: 100%">
+          <!-- <v-row no-gutters>
+            Password Universe
+          </v-row>
 
-        <v-row style="min-height: 90%" no-gutters>
-          <tabs />
-        </v-row>
+          <v-row style="min-height: 90%" class="pa-0 ma-0" no-gutters>
+            <tabs />
+          </v-row>
 
-        <v-row no-gutters>
-          <generate-load v-on:generate="generate" v-on:load="load" />
-        </v-row>
+          <v-row no-gutters class="pa-0 ma-0">
+            <generate-load v-on:generate="generate" v-on:load="load" />
+          </v-row> -->
+          <div style="min-height:5%; background-color: #424242" class="d-flex align-center justify-center">
+            <span style="color: white">Password Universe</span>
+          </div>
+          <tabs id="tabs" v-on:clone="clone" :universes="universes" style="min-height: 90%" />
+          <generate-load style="min-height: 5%" v-on:generate="generate" v-on:load="load" />
 
         </div>
     </div>
@@ -42,14 +47,17 @@ export default Vue.extend({
   },
 
   data: () => ({
-
+    universes: []
 
   }),
   methods: {
-    generate(passwordList: object, earth: string) {
+    clone(universe) {
+      this.universes.push(universe);
+    },
+    generate(passwordList: string[], earth: string) {
       // We have list of passwords, now run dimensionality reduction on them
-      new PasswordUniverseGenerator().generate(passwordList);
-
+      const results = new PasswordUniverseGenerator().generate(passwordList);
+      this.universes.push(results);
     },
     load(a: string) {
       console.log("loading");
@@ -59,12 +67,22 @@ export default Vue.extend({
 });
 </script>
 
-<style scoped>
+<style>
+html, body {
+  overflow: hidden;
+}
+
 #uc {
   min-height: 100%;
 }
 
-tabs {
+#tabs {
   min-height: 90%;
 }
+
+#right {
+  background-color: #212121;
+
+}
+
 </style>

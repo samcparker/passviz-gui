@@ -10,8 +10,16 @@
             v-bind="attrs"
             v-on="on"
             class="w-100 px-0"
+            tile
+            id="genLoadButton"
           >
+          <div class="d-flex flex-column">
+
+          <v-icon small>
+        mdi-plus-thick
+      </v-icon>
             Generate
+          </div>
           </v-btn>
         </v-col>
       </template>
@@ -43,7 +51,7 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="green darken-1" text @click="generateDialog = false">
+          <v-btn color="green darken-1" text @click="generateDialog = false" tile>
             Close
           </v-btn>
           <v-btn
@@ -53,6 +61,7 @@
               generateDialog = false;
               generate();
             "
+            tile
           >
             Generate
           </v-btn>
@@ -69,8 +78,16 @@
             v-bind="attrs"
             v-on="on"
             class="w-100 px-0"
+            id="genLoadButton"
+            tile
           >
+          <div class="d-flex flex-column">
+          <v-icon small>
+        mdi-upload
+      </v-icon>
             Load
+
+          </div>
           </v-btn>
         </v-col>
       </template>
@@ -100,7 +117,7 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="green darken-1" text @click="loadDialog = false">
+          <v-btn tile color="green darken-1" text @click="loadDialog = false">
             Close
           </v-btn>
           <v-btn
@@ -110,6 +127,7 @@
               loadDialog = false;
               load();
             "
+            tile
           >
             Load
           </v-btn>
@@ -176,5 +194,11 @@ v-btn {
 
 #btn-col {
   max-width: 50%;
+}
+
+#genLoadButton {
+  min-width: 100%;
+  max-width: 100%;
+  font-size: 10px;
 }
 </style>

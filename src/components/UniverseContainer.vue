@@ -1,8 +1,8 @@
 <template>
 
-    <v-row style="min-height: 100%" no-gutters>
+    <v-row id="uc" style="min-height: 100%" no-gutters>
         <v-col v-for="(universe, index) in universes" :key="index" id="universe-col" no-gutters>
-            <universe :name="universe.name" />
+            <universe :universe="universe" />
         </v-col>
     </v-row>
 
@@ -15,16 +15,11 @@ export default {
     components: {
         Universe
     },
+    props: {
+        universes: Array
+    },
     data: () => {
         return {
-            universes: [
-                {
-                    name: "dog"
-                },
-                {
-                    name: "cat"
-                }
-            ]
         }
     }
 }
@@ -34,4 +29,8 @@ export default {
 /* #universe-col {
     padding: 0
 } */
+
+#uc {
+    background-color: black;
+}
 </style>

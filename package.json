@@ -13,14 +13,20 @@
   },
   "main": "background.js",
   "dependencies": {
+    "@mdi/font": "^5.9.55",
+    "@types/fast-levenshtein": "0.0.1",
     "core-js": "^3.6.5",
     "d3": "^6.5.0",
+    "d3-zoom": "^2.0.0",
+    "fast-levenshtein": "^3.0.0",
     "raw-loader": "^4.0.2",
     "roboto-fontface": "*",
+    "tsne-js": "^1.0.3",
     "vue": "^2.6.11",
     "vuetify": "^2.4.0"
   },
   "devDependencies": {
+    "@types/d3": "^6.3.0",
     "@types/electron-devtools-installer": "^2.2.0",
     "@typescript-eslint/eslint-plugin": "^2.33.0",
     "@typescript-eslint/parser": "^2.33.0",
