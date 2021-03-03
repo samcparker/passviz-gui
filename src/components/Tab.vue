@@ -1,9 +1,21 @@
 <template>
   
       <div id="tab" class="align-center px-2 mb-2" style="" @mouseover="universe.hover = true" @mouseleave="universe.hover = false">
+
+    <v-tooltip bottom v-if="universe.error" >
+      <template v-slot:activator="{ on, attrs }">
+          <v-icon color="red" v-bind="attrs" v-on="on">
+              mdi-alert-circle
+          </v-icon>
+      </template>
+      <span>
+          {{ universe.error }}
+      </span>
+    </v-tooltip>
           <v-progress-linear
+          v-if="!universe.error"
                 value="100"
-                color="yellow darken-2"
+                :color="universe.error ? 'red' : 'white'"
                 :indeterminate="universe.computing"
             ></v-progress-linear>
             <v-btn icon color="white" x-small @click="remove">

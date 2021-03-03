@@ -78,7 +78,8 @@ export default Vue.extend({
         stars: null,
         computing: true,
         hover: false,
-        visible: false
+        visible: false,
+        error: null
       };
       this.universes.push(u);
 
@@ -110,6 +111,7 @@ export default Vue.extend({
       })
       .catch((err) => {
         console.error(err)
+        u.error = err;
       });
 
         console.log("out:" , this.universes);
