@@ -2,7 +2,7 @@
 
     <v-row id="uc" style="min-height: 100%" no-gutters>
         <v-col v-for="(universe, index) in universes" :key="index" id="universe-col" no-gutters :class="universe.visible ? 'show' : 'hide'">
-            <universe :universe="universe"/>
+            <universe v-if="!universe.computing" :universe="universe"/>
         </v-col>
     </v-row>
 

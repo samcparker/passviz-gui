@@ -63,9 +63,6 @@ export default Vue.extend({
       this.universes.push(nu);
     },
     remove(universe) {
-      const conf = confirm("Are you sure you want to remove this universe?");
-
-      if (!conf) return;
 
       for (let i = 0; i < this.universes.length; i++) {
         if (this.universes[i].id == universe.id) {
@@ -75,6 +72,16 @@ export default Vue.extend({
       }
     },
     generate(passwords: string[], earth: string) {
+      // Add placeholder with cancel buttons etc
+      const u = {
+        id: Date.now().toString(36) + Math.random().toString(36).substring(2),
+        stars: null,
+        computing: true,
+        hover: false,
+        visible: false
+      };
+      this.universes.push(u);
+
       // We have list of passwords, now run dimensionality reduction on them
       // let stars = null;
 
@@ -89,16 +96,17 @@ export default Vue.extend({
       new PasswordUniverseGenerator().generate(passwords, externalServer)
       .then((stars) => {
 
-        const results = {
-          stars: stars,
-          id: Date.now().toString(36) + Math.random().toString(36).substring(2),
-          hover: false,
-          visible: true
-        };
+        // const results = {
+        //   stars: stars,
+          
+        //   hover: false,
+        //   visible: true
+        // };
 
-        this.universes.push(results);
+        u.stars = stars;
+        u.computing = false;
+        u.visible = true;
 
-        console.log("in", this.universes);
       })
       .catch((err) => {
         console.error(err)
