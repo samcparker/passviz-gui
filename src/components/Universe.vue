@@ -22,12 +22,12 @@
                   mdi-home
               </v-icon>
           </v-btn>
-          <v-btn @click="zoom(1.2)" small>
+          <v-btn @click="zoomBy(1.2)" small>
               <v-icon small>
                   mdi-plus-thick
               </v-icon>
           </v-btn>
-          <v-btn @click="zoom(0.8)" small>
+          <v-btn @click="zoomBy(0.8)" small>
               <v-icon small>
                   mdi-minus-thick
               </v-icon>
@@ -74,6 +74,9 @@
 
 import * as d3 from "d3";
 
+const clustering = require("density-clustering");
+
+
 export default {
 
     data: () => {
@@ -98,16 +101,32 @@ export default {
             }
             console.log('Zoom is ' + (zoomable ? 'enabled' : 'disabled'));
         },
+        updateColors() {
+            const dataset = [];
+            for (let i = 0; i < this.universe.stars.length; i++) {
+                dataset.push([this.universe.stars[i].position.x, this.universe.stars[i].position.y]);
+            }
 
+            const clusters = clustering.dbscan.run(dataset, .1, 2);
+
+            for (let i = 0; i < this.universe.stars.length; i++) {
+                this.universe.stars[i].cluster = clusters[i];
+            }
+
+            this.g.selectAll(".star")
+            .attr("fill", function(d) {
+                const r = d.cluster * 10;
+                const g = d.cluster * 20;
+                const b = d.cluster * 30;
+                return `rgb(${r}, ${g}, ${b})`;
+            });
+        },
         updatePoints(points) {
             this.g.selectAll(".star")
             .data(points, function(d) { return d.value; })
             .enter()
             .append("circle")
             .classed("star", true)
-            .attr("fill", function() {
-                return "white";
-            })
             .attr("value", (d) => { return d.value; });
 
             this.g.selectAll(".annot")
@@ -129,7 +148,7 @@ export default {
             const spread = (this.spread - 100) * 0.01;
 
             function getPos(pos) {
-                return pos * (width / 2) * spread + (width / 2);
+                return spread * pos * width * 0.3 + width / 2;
             }
 
             this.g.selectAll(".star")
@@ -159,23 +178,26 @@ export default {
             });
         },
         updateTextSize() {
-            const textSize = 20 * this.textSize / 100;
+            const textSize = 20 * this.textSize * 0.01;
+            console.log(textSize);
             this.g.selectAll(".annot")
             .style("font-size", textSize);
         },
         updateTextOpacity() {
             const textOpacity = this.textOpacity / 100;
+
             this.g.selectAll(".annot")
             .style("opacity", textOpacity);
         },
-        zoom(amount) {
-            this.zoom.scaleBy(this.g.transition().duration(200), amount);
+        zoomBy(amount) {
+            this.zoom.scaleBy(this.svg.transition().duration(200), amount);
         },
         resetView() {
             this.svg.transition()
                     .duration(750)
                     .call(this.zoom.transform, d3.zoomIdentity);
-        }
+        },
+        
     },
     mounted() {
          // Do d3.js stuff here
@@ -196,6 +218,7 @@ export default {
         this.updateSize();
         this.updateTextSize();
         this.updateTextOpacity();
+        this.updateColors();
     }
 
 }
