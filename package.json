@@ -25,6 +25,7 @@
     "node-localstorage": "^2.1.6",
     "raw-loader": "^4.0.2",
     "roboto-fontface": "*",
+    "store2": "^2.12.0",
     "tsne-js": "^1.0.3",
     "vue": "^2.6.11",
     "vuetify": "^2.4.0"

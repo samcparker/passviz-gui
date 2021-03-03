@@ -2,7 +2,7 @@
   <v-dialog v-model="settingsDialog" persistent max-width="500">
       <template v-slot:activator="{ on, attrs }">
         <v-btn v-bind="attrs"
-            v-on="on" icon x-small color="white">
+            v-on="on" icon x-small color="white" @click="setSettings">
             <v-icon>mdi-cog-outline</v-icon>
         </v-btn>
       </template>
@@ -53,16 +53,7 @@
 </template>
 
 <script>
-import isElectron from "is-electron";
-
-import { LocalStorage } from "node-localstorage"; 
-global.localStorage = new LocalStorage('./scratch');
-
-let storage = null;
-if (isElectron()) {
-  storage = require("electron-json-storage");
-}
-
+import storage from "../storage";
 
 export default {
   data: () => {
@@ -74,48 +65,18 @@ export default {
     },
     mounted() {
       //set settings
-      this.externalServerEnabled = this.getItem("externalServerEnabled");
-      this.externalServer = this.getItem("externalServer");
+      this.setSettings();
     },
     methods: {
       // Set key to value in electron or web browser, whichever is being used
-      setItem(key, value) {
-        if (isElectron()) {
-          // Store in electron storage
-   
-          storage.set(key, value, function(error) {
-            if (error) throw error;
-          });
-
-
-        }
-        else {
-          // Store in localStorage
-
-          localStorage.setItem(key, value)
-        }
-      },
-      getItem(key) {
-        if (isElectron()) {
-          // retrieve from electron storage
-
-          storage.get(key, function(error, data) {
-            if (error) throw error;
-
-            return data;
-          });
-        }
-        else {
-          // retrieve from localStorage
-          console.log("not in electron, retrieve from localStorage");
-          return localStorage.getItem(key)
-        }
-        
+      setSettings() {
+        this.externalServerEnabled = storage.getItem("externalServerEnabled");
+        this.externalServer = storage.getItem("externalServer");
       },
       saveSettings() {
         
-        this.setItem("externalServerEnabled", this.externalServerEnabled);
-        this.setItem("externalServer", this.externalServer);
+        storage.setItem("externalServerEnabled", this.externalServerEnabled);
+        storage.setItem("externalServer", this.externalServer);
 
         this.settingsDialog = false;
       },

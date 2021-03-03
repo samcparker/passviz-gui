@@ -40,6 +40,7 @@ import GenerateLoad from "./components/GenerateLoad.vue";
 import PasswordUniverseGenerator from "./passworduniversegenerator";
 import Settings from "./components/Settings.vue";
 
+import storage from "./storage";
 
 export default Vue.extend({
   name: "App",
@@ -53,7 +54,6 @@ export default Vue.extend({
 
   data: () => ({
     universes: [],
-    externalServer: "http://127.0.0.1:5000/",
 
   }),
   methods: {
@@ -78,7 +78,15 @@ export default Vue.extend({
       // We have list of passwords, now run dimensionality reduction on them
       // let stars = null;
 
-      new PasswordUniverseGenerator().generate(passwords, this.externalServer)
+
+      const externalServerEnabled = storage.getItem("externalServerEnabled");
+      let externalServer = null;
+
+      if (externalServerEnabled) {
+        externalServer = storage.getItem("externalServer");
+      }
+
+      new PasswordUniverseGenerator().generate(passwords, externalServer)
       .then((stars) => {
 
         const results = {

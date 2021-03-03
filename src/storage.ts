@@ -1,45 +1,47 @@
 import isElectron from "is-electron";
-import 
-    LocalStorage
- from "node-localstorage";
-global.localStorage = new LocalStorage('./scratch');
+
+import store from "store2";
 
 let electronStorage = null;
 if (isElectron()) {
     electronStorage = require("electron-json-storage");
 }
 
-export default class Storage {
-    
-    setItem(key, value) {
-        if (isElectron()) {
-            // Store in electron storage
-            
-            electronStorage.set(key, value, function (error) {
-                if (error) throw error;
-            });
-            
-            
-        } else {
-            // Store in localStorage
-            
-            localStorage.setItem(key, value)
-        }
+
+const setItem = function (key, value) {
+    if (isElectron()) {
+        // Store in electron storage
+
+        electronStorage.set(key, value, function (error) {
+            if (error) throw error;
+        });
+
+
+    } else {
+        // Store in localStorage
+        console.log("setting", key, "to", value);
+        store.set(key, value)
     }
-    
-    getItem(key) {
-        if (isElectron()) {
-            // retrieve from electron storage
+}
 
-            electronStorage.get(key, function (error, data) {
-                if (error) throw error;
+const getItem = function (key) {
+    if (isElectron()) {
+        // retrieve from electron storage
 
-                return data;
-            });
-        } else {
-            // retrieve from localStorage
-            return localStorage.getItem(key)
-        }
+        electronStorage.get(key, function (error, data) {
+            if (error) throw error;
+
+            return data;
+        });
+    } else {
+
+        // retrieve from localStorage
+        console.log("getting", key);
+        return store.get(key)
     }
+}
 
+export default {
+    setItem,
+    getItem
 }
