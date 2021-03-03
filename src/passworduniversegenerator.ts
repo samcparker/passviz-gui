@@ -1,5 +1,8 @@
+import { stackOrderReverse } from "d3";
 import fastLevenshtein from "fast-levenshtein";
 import TSNE from "tsne-js";
+
+import axios from "axios";
 
 export default class PasswordUniverseGenerator {
 
@@ -7,20 +10,31 @@ export default class PasswordUniverseGenerator {
         return;
     }
 
-    generate(passwords: string[]) {
-        console.log("generating in class");
-
-        console.log("generating distance matrix");
-        const distanceMatrix: number[][] = this.generateDistanceMatrix(passwords);
-        console.log("finished generating distance matrix");
-        console.log(distanceMatrix);
-
-        console.log("generating dr");
-        const dr: number[][] = this.generateDimensionalityReduction(distanceMatrix);
-        console.log("finished generating dr");
-        console.log(dr);
-
+    // Generate a new star universe. Promise return type.
+    generate(passwords: string[], externalServer: string) {
         
+
+        if (externalServer) {
+            return new Promise((resolve, reject) => {
+                this.generateFromServer(passwords, externalServer)
+                .then((res) => {
+                    resolve(res);
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+            });
+        }
+        return new Promise((resolve, reject) => {
+            const points = this.generateFromClient(passwords);
+
+            resolve(points);
+        });
+
+    }
+
+    generateFromClient(passwords: string[]) {
+
         interface Position {
             x: number;
             y: number;
@@ -30,8 +44,11 @@ export default class PasswordUniverseGenerator {
             value: string;
             position: Position;
         }
-        
+
         const stars : Star[] = [];
+        const distanceMatrix: number[][] = this.generateDistanceMatrix(passwords);
+        const dr: number[][] = this.generateDimensionalityReduction(distanceMatrix);
+
 
         for (let i = 0; i < passwords.length; i++) {
             const star = {
@@ -44,11 +61,29 @@ export default class PasswordUniverseGenerator {
             stars.push(
                 star
             );
-
         }
-        
         return stars;
+    }
 
+    generateFromServer(passwords: string[], externalServer: string) {
+
+        return new Promise((resolve, reject) => {
+            const formData = new FormData();
+            console.log(passwords)
+            console.log(passwords.length)
+            formData.append("password_list", JSON.stringify(passwords));
+
+            axios.post(`${externalServer}generate`, formData)
+            .then((res) => {
+
+                const stars = res.data.stars;
+                console.log(stars);
+                resolve(stars);
+            })
+            .catch((err) => {
+                reject(err);
+            });
+        });
     }
 
     generateDistanceMatrix(passwords: string[]) {
@@ -73,9 +108,9 @@ export default class PasswordUniverseGenerator {
 
         const model = new TSNE({
             dim: 2,
-            perplexity: 60.0,
+            perplexity: 90.0,
             earlyExaggeration: 4.0,
-            learningRate: 10.0,
+            learningRate: 5,
             nIter: 1000,
             metric: 'euclidean'
         });

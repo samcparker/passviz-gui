@@ -1,6 +1,6 @@
 <template>
     <div id="tabs" class="px-1" style="width: 100%; overflow-y: scroll;">
-        <tab v-on:clone="clone" v-for="(universe, index) in universes" :key="index" :universe="universe"/>
+        <tab v-on:clone="clone" v-on:remove="remove" v-for="(universe, index) in universes" :key="index" :universe="universe"/>
     </div>
 </template>
 
@@ -13,8 +13,10 @@ export default {
     },
     methods: {
         clone(e) {
-            console.log(e);
             this.$emit("clone", e);
+        },
+        remove(e) {
+            this.$emit("remove", e);
         }
     }
 }

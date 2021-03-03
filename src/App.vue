@@ -16,10 +16,12 @@
           <v-row no-gutters class="pa-0 ma-0">
             <generate-load v-on:generate="generate" v-on:load="load" />
           </v-row> -->
-          <div style="min-height:5%; background-color: #424242" class="d-flex align-center justify-center">
-            <span style="color: white">Password Universe</span>
+          <div style="min-height:5%; background-color: #424242;" class="px-2 d-flex align-center justify-center">
+            <span style="color: white; font-weight: 900">PASSWORD UNIVERSE
+              <settings />
+            </span>
           </div>
-          <tabs id="tabs" v-on:clone="clone" :universes="universes" style="min-height: 90%" />
+          <tabs id="tabs" v-on:clone="clone" v-on:remove="remove" :universes="universes" style="min-height: 90%" />
           <generate-load style="min-height: 5%" v-on:generate="generate" v-on:load="load" />
 
         </div>
@@ -36,6 +38,8 @@ import Tabs from "./components/Tabs.vue";
 import GenerateLoad from "./components/GenerateLoad.vue";
 
 import PasswordUniverseGenerator from "./passworduniversegenerator";
+import Settings from "./components/Settings.vue";
+
 
 export default Vue.extend({
   name: "App",
@@ -44,20 +48,56 @@ export default Vue.extend({
     UniverseContainer,
     Tabs,
     GenerateLoad,
+    Settings
   },
 
   data: () => ({
-    universes: []
+    universes: [],
+    externalServer: "http://127.0.0.1:5000/",
 
   }),
   methods: {
     clone(universe) {
-      this.universes.push(universe);
+      const nu = JSON.parse(JSON.stringify(universe));
+      nu.id = Date.now().toString(36) + Math.random().toString(36).substring(2);
+      this.universes.push(nu);
     },
-    generate(passwordList: string[], earth: string) {
+    remove(universe) {
+      const conf = confirm("Are you sure you want to remove this universe?");
+
+      if (!conf) return;
+
+      for (let i = 0; i < this.universes.length; i++) {
+        if (this.universes[i].id == universe.id) {
+          this.universes.splice(i, 1);
+          return;
+        }
+      }
+    },
+    generate(passwords: string[], earth: string) {
       // We have list of passwords, now run dimensionality reduction on them
-      const results = new PasswordUniverseGenerator().generate(passwordList);
-      this.universes.push(results);
+      // let stars = null;
+
+      new PasswordUniverseGenerator().generate(passwords, this.externalServer)
+      .then((stars) => {
+
+        const results = {
+          stars: stars,
+          id: Date.now().toString(36) + Math.random().toString(36).substring(2),
+          hover: false,
+          visible: true
+        };
+
+        this.universes.push(results);
+
+        console.log("in", this.universes);
+      })
+      .catch((err) => {
+        console.error(err)
+      });
+
+        console.log("out:" , this.universes);
+
     },
     load(a: string) {
       console.log("loading");

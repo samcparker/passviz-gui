@@ -12,6 +12,7 @@
             class="w-100 px-0"
             tile
             id="genLoadButton"
+            
           >
           <div class="d-flex flex-column">
 
@@ -43,6 +44,7 @@
               :max="totalPasswords"
               thumb-label="always"
               v-model="amount"
+              :disabled="disabled == 1"
             >
             </v-slider>
           </v-form>
@@ -101,16 +103,8 @@
           <v-form>
             <v-file-input
               truncate-length="15"
-              label="Password database"
+              label="Universe file"
             ></v-file-input>
-
-            <v-slider
-              label="Percentage used"
-              min="1"
-              max="100"
-              thumb-label="always"
-            >
-            </v-slider>
           </v-form>
         </v-container>
         <v-row> </v-row>
@@ -144,36 +138,72 @@ export default {
       generateDialog: false,
       loadDialog: false,
       file: null,
+      loadFile: null,
       passwords: null,
       totalPasswords: 1,
-      amount: null
+      amount: 100,
+      disabled: true
     };
   },
   methods: {
     generate() {
       console.log("Generating...");
+      console.log(this.passwords);
+      console.log(this.amount);
         this.$emit("generate", this.passwords.slice(0, this.amount), null);
       // pass the params
     },
     load() {
       console.log("Loading...");
-      this.$emit("load", "hi");
+      this.$emit("load", this.loadFile);
     },
 
-    setFile(event) {
-      console.log(event);
-      this.file = event;
+    setLoadFile(event) {
+      this.loadFile = event;
+
+      if (!this.loadFile) {
+        return;
+      }
 
       const reader = new FileReader();
 
+      
+      reader.readAsText(this.file, "UTF-8");
+      reader.onload = evt => {
+        this.loaded = JSON.parse(evt.target.result);
+
+      };
+      reader.onerror = evt => {
+        this.disabled = true;
+        console.error(evt);
+      };
+
+    },
+
+    setFile(event) {
+      this.file = event;
+
+      if (!this.file) {
+        this.disabled = true;
+        return;
+      }
+
+      const reader = new FileReader();
+
+      
       reader.readAsText(this.file, "UTF-8");
       reader.onload = evt => {
         this.passwords = evt.target.result.split("\n");
 
         this.totalPasswords = this.passwords.length;
+        this.amount = this.totalPasswords;
+        this.disabled = false;
+
+
 
       };
       reader.onerror = evt => {
+        this.disabled = true;
         console.error(evt);
       };
     }

@@ -1,8 +1,10 @@
 <template>
-  <div id="universe" style="position: relative">
+  <div id="universe" >
       <svg id="svg" ref="svg">
 
       </svg>
+        <div v-if="universe.hover" id="hover-overlay"></div>
+
           <div style="position: absolute; left: 0; bottom: 0">
           <v-text-field
             label="Search/Regex"
@@ -51,7 +53,7 @@
             <v-subheader class="pl-0">
             Text Size
             </v-subheader>
-          <v-slider dense></v-slider>
+          <v-slider min="0" max="100" v-model="textSize" @input="updateTextSize()" dense></v-slider>
             <v-subheader class="pl-0">
             Annotations
             </v-subheader>
@@ -59,7 +61,7 @@
             <v-subheader class="pl-0">
             Text Opacity
             </v-subheader>
-          <v-slider dense></v-slider>
+          <v-slider min="0" max="100" v-model="textOpacity" @input="updateTextOpacity()" dense></v-slider>
 
         </v-expansion-panel-content>
       </v-expansion-panel>
@@ -71,6 +73,7 @@
 <script>
 
 import * as d3 from "d3";
+import { text } from 'd3';
 
 export default {
 
@@ -78,11 +81,13 @@ export default {
         return {
             zoom: null,
             spread: 50,
-            starSize: 50
+            starSize: 50,
+            textSize: 50,
+            textOpacity: 50
         }
     },
     props: {
-        universe: Array,
+        universe: Object,
     },
     methods: {
         setZoomable(zoomable) {
@@ -97,7 +102,7 @@ export default {
 
         updatePoints(points) {
             this.g.selectAll(".star")
-            .data(points, function(d) { return d.name; })
+            .data(points, function(d) { return d.value; })
             .enter()
             .append("circle")
             .classed("star", true)
@@ -105,6 +110,18 @@ export default {
                 return "white";
             })
             .attr("value", (d) => { return d.value; });
+
+            this.g.selectAll(".annot")
+            .data(points, function(d) { return d.value; })
+            .enter()
+            .append("text")
+            .classed("annot", true)
+            .attr("fill", function() {
+                return "white";
+            })
+            .text(function(d) {
+                return d.value;
+            });
         },
         updatePosition() {
             const width = this.$refs.svg.clientWidth;
@@ -112,20 +129,45 @@ export default {
 
             const spread = (this.spread - 100) * 0.01;
 
+            function getPos(pos) {
+                return pos * (width / 2) * spread + (width / 2);
+            }
+
             this.g.selectAll(".star")
             .attr("cx", (d) => {
-                return d.position.x * (width / 2) * spread + (width / 2);
+                return getPos(d.position.x);
             })
             .attr("cy", (d) => {
-                return d.position.y * (width / 2) * spread + (width / 2);
+                return getPos(d.position.y);
+            });
+
+            console.log("doing anots now!!");
+
+            this.g.selectAll(".annot")
+            .attr("x", (d) => {
+
+                return getPos(d.position.x) + 10;
+            })
+            .attr("y", (d) => {
+                 return getPos(d.position.y) + 10;
             });
         },
         updateSize() {
-            const starSize = this.starSize / 100;
+            const starSize = 10 * this.starSize / 100;
             this.g.selectAll(".star")
             .attr("r", (d) => {
-                return 10 * starSize;
-            })
+                return starSize;
+            });
+        },
+        updateTextSize() {
+            const textSize = 20 * this.textSize / 100;
+            this.g.selectAll(".annot")
+            .style("font-size", textSize);
+        },
+        updateTextOpacity() {
+            const textOpacity = this.textOpacity / 100;
+            this.g.selectAll(".annot")
+            .style("opacity", textOpacity);
         },
         zoom(amount) {
             this.zoom.scaleBy(this.g.transition().duration(200), amount);
@@ -150,23 +192,38 @@ export default {
         this.setZoomable(true);
 
         
-        this.updatePoints(this.universe);
+        this.updatePoints(this.universe.stars);
         this.updatePosition();
         this.updateSize();
+        this.updateTextSize();
+        this.updateTextOpacity();
     }
 
 }
 </script>
 
 <style>
+#hover-overlay {
+    position: absolute; 
+    top:0; 
+    min-width: 100%;
+    min-height: 100%; 
+    background-color: white; 
+    opacity: .2;
+}
+
 #universe {
     height: 100%;
+    width: 100%;
     background-color: black;
     color: white;
+    position: relative;
 }
 
 #svg {
     width: 100%;
     height: 100%;
 }
+
+
 </style>

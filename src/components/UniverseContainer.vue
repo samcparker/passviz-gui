@@ -1,8 +1,8 @@
 <template>
 
     <v-row id="uc" style="min-height: 100%" no-gutters>
-        <v-col v-for="(universe, index) in universes" :key="index" id="universe-col" no-gutters>
-            <universe :universe="universe" />
+        <v-col v-for="(universe, index) in universes" :key="index" id="universe-col" no-gutters :class="universe.visible ? 'show' : 'hide'">
+            <universe :universe="universe"/>
         </v-col>
     </v-row>
 
@@ -32,5 +32,16 @@ export default {
 
 #uc {
     background-color: black;
+}
+
+#universe-col {
+    width: 100%;
+}
+
+.hide {
+    display: none;
+}
+.show {
+    display: block;
 }
 </style>
