@@ -2,7 +2,7 @@
 
     <v-row id="uc" style="min-height: 100%" no-gutters>
         <v-col v-for="(universe, index) in universes" :key="index" id="universe-col" no-gutters :class="universe.visible ? 'show' : 'hide'">
-            <universe v-if="!universe.computing" :universe="universe"/>
+            <universe v-on:clone="clone" v-if="!universe.computing" :universe="universe"/>
         </v-col>
     </v-row>
 
@@ -20,6 +20,11 @@ export default {
     },
     data: () => {
         return {
+        }
+    },
+    methods: {
+        clone(evt) {
+            this.$emit("clone", evt);
         }
     }
 }

@@ -14,6 +14,7 @@
   "main": "background.js",
   "dependencies": {
     "@mdi/font": "^5.9.55",
+    "@simonwep/selection-js": "^2.0.1",
     "@types/fast-levenshtein": "0.0.1",
     "axios": "^0.21.1",
     "core-js": "^3.6.5",

@@ -3,7 +3,7 @@
 
   
     <div class="d-flex" style="min-height: 100%">
-        <universe-container id="uc" :universes="universes"/>
+        <universe-container v-on:clone="clone" id="uc" :universes="universes"/>
         <div id="right" class="d-flex flex-column" style="max-height: 100%">
           <!-- <v-row no-gutters>
             Password Universe
@@ -58,6 +58,7 @@ export default Vue.extend({
   }),
   methods: {
     clone(universe) {
+      console.log(universe);
       const nu = JSON.parse(JSON.stringify(universe));
       nu.id = Date.now().toString(36) + Math.random().toString(36).substring(2);
       this.universes.push(nu);
