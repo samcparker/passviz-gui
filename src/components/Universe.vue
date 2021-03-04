@@ -5,16 +5,18 @@
       </svg>
         <div v-if="universe.hover" id="hover-overlay"></div>
 
-          <div style="position: absolute; left: 0; bottom: 0">
+          <div style="position: absolute; left: 5px; bottom: 5px">
           <v-text-field
             label="Search/Regex"
             filled
             dense
             style="background-color: white"
+            @input="doRegex"
+            v-model="regexInput"
           ></v-text-field>
       </div>
 
-      <div style="position: absolute; right: 0; bottom: 0">
+      <div style="position: absolute; right: 5px; bottom: 5px">
           <div class="d-flex flex-column">
 
           <v-btn v-if="!selectionMade" @click="startSelect()" small>
@@ -62,7 +64,7 @@
           </div>
       </div>
 
-      <div style="position: absolute; right: 0; top: 0">
+      <div style="position: absolute; right: 5px; top: 5px">
    <v-expansion-panels popout>
       <v-expansion-panel>
         <v-expansion-panel-header>Graphical Controls</v-expansion-panel-header>
@@ -115,12 +117,24 @@ export default {
             textOpacity: 50,
             selectionMade: false,
             selected: null,
+            regexInput: null,
+            regex: null
         }
     },
     props: {
         universe: Object,
     },
     methods: {
+        doRegex() {
+            if (this.regexInput == "") {
+                    this.regex = null;
+                }
+                else {
+                    this.regex = new RegExp(this.regexInput);
+
+                }
+            this.updateColors();
+        },
         startSelect() {
             this.setZoomable(false);
 
@@ -278,7 +292,12 @@ export default {
             //     // return `rgb(${r}, ${g}, ${b})`;
             //     return "white";
             // });
-            this.svg.selectAll(".star").style("fill", "white");
+            this.svg.selectAll(".star").style("fill", (d) => {
+                if (this.regex && this.regex.test(d.value)) {
+                    return "red";
+                }
+                return "white";
+            });
         },
         updatePoints(points) {
             this.g.selectAll(".star")

@@ -10,6 +10,10 @@ protocol.registerSchemesAsPrivileged([
   { scheme: "app", privileges: { secure: true, standard: true } }
 ]);
 
+import electronStore from "electron-store";
+electronStore.initRenderer();
+
+
 async function createWindow() {
   // Create the browser window.
   const win = new BrowserWindow({
