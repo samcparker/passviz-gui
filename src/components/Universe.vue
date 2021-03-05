@@ -105,10 +105,15 @@
         <v-expansion-panel-header>Clusters</v-expansion-panel-header>
         <v-expansion-panel-content>
             <v-subheader class="pl-0">
-            Amount
+            neighborhood radius {{ dbscanNeighborhoodRadius / 100 }}
             </v-subheader>
-          <v-slider min="1" max="10" v-model="clusterAmount" dense></v-slider>
+          <v-slider min="0" max="100" v-model="dbscanNeighborhoodRadius" dense></v-slider>
+            <v-subheader class="pl-0">
+            number of points in neighborhood to form a cluster {{ dbscanMinimumNeighbours }}
+            </v-subheader>
+          <v-slider min="1" max="50" v-model="dbscanMinimumNeighbours" dense></v-slider>
 
+            <v-btn @click="stopClustering">Stop</v-btn>
             <v-btn @click="doClusters">Process</v-btn>
 
         </v-expansion-panel-content>
@@ -124,6 +129,8 @@ import * as d3 from "d3";
 import SelectionArea from "@simonwep/selection-js";
 // const clustering = require("density-clustering");
 import clustering  from "density-clustering";
+import gen from "random-seed"; 
+import { text } from 'd3';
 
 export default {
 
@@ -138,16 +145,32 @@ export default {
             selected: null,
             regexInput: null,
             regex: null,
-            clusterAmount: 3
+            clusterAmount: 3,
+            dbscanNeighborhoodRadius: 7,
+            dbscanMinimumNeighbours: 2,
+            clustering: false
+
         }
     },
     props: {
         universe: Object,
     },
     methods: {
+        stopClustering() {
+            this.clustering = false;
+            this.updateColors();
+            this.updateTextOpacity();
+        },
         doClusters() {
+            this.clustering = true;
             console.log("doing clusters with", this.clusterAmount);
 
+            // make 2d array of all points wwhere first index is x pos and second is y pos for each star
+            const dataset = [];
+            const stars = this.universe.stars;
+            for (let i = 0; i < stars.length; i++) {
+                dataset.push([stars[i].position.x, stars[i].position.y]);
+            }
             // const dataset = [
             //     [1,1],[0,1],[1,0],
             //     [10,10],[10,13],[13,13],
@@ -155,10 +178,88 @@ export default {
             // ];
 
                     
-            // const dbscan = new clustering.DBSCAN();
+            // const optics = new clustering.OPTICS();
+            const dbscan = new clustering.DBSCAN();
             // // parameters: 5 - neighborhood radius, 2 - number of points in neighborhood to form a cluster
-            // const clusters = dbscan.run(dataset, 5, 2);
-            // console.log(clusters, dbscan.noise);
+            
+            const clusters = dbscan.run(dataset, (this.dbscanNeighborhoodRadius / 100), this.dbscanMinimumNeighbours);
+
+            // Give each star a new cluster
+            for (let i = 0; i < stars.length; i++) {
+                stars[i].cluster = null;
+                stars[i].center = false;
+            }
+
+            const means = {};
+
+            for (let i = 0; i < clusters.length; i++) {
+                // list of indices
+                const cluster = clusters[i];
+                const mean = [0, 0];
+                for (let j = 0; j < cluster.length; j++) {
+                    stars[cluster[j]].cluster = i;
+
+                    mean[0] += stars[cluster[j]].position.x;
+                    mean[1] += stars[cluster[j]].position.y;
+                    // console.log(stars[cluster[j]].position);
+
+                }
+
+                mean[0] /= cluster.length;
+                mean[1] /= cluster.length;
+
+
+                means[i] = mean;
+     
+            }
+
+            // closestIndex will store the index of the closest point along with its position, new items wil be checked against this
+            const closestIndex = {};
+            // for each cluster and each point in the cluster, find closest to means[i]
+            for (let i = 0; i < clusters.length; i++) {
+                const cluster = clusters[i];
+       
+                for (let j = 0; j < cluster.length; j++) {
+             
+                    // cluster[j] is the index of the star in the stars array
+                    const starIndex = cluster[j];
+                    const x = stars[starIndex].position.x;
+                    const y = stars[starIndex].position.y;
+
+                    const testX = means[i][0];
+                    const testY = means[i][1];
+
+
+                    const d = Math.sqrt(Math.pow((testX - x), 2) + Math.pow((testY - y), 2));
+
+                    // no values in closestIndex for this cluster, put straight in
+
+                    if (!closestIndex[i]) {
+                        closestIndex[i] = {
+                            index: starIndex,
+                            distance: d
+                        };
+                    }
+                    // values are already in closestIndex for this cluster, calculate if closer
+                    else {
+                        if (d < closestIndex[i].d) {
+                            // closer to mean than previous one
+
+                            closestIndex[i].distance = d;
+                            closestIndex[i].index = starIndex;
+                        }
+                    }
+                }
+            }
+            
+            for (let i = 0; i < clusters.length; i++) {
+                const closest = closestIndex[i].index;
+
+                stars[closest].center = true;
+            }
+
+            this.updateColors();
+            this.updateTextOpacity();
         },
         doRegex() {
             if (this.regexInput == "") {
@@ -328,10 +429,25 @@ export default {
             //     return "white";
             // });
             this.svg.selectAll(".star").style("fill", (d) => {
-                if (this.regex && this.regex.test(d.value)) {
-                    return "red";
+                
+                if (!this.clustering) {
+                    return "white";
                 }
-                return "white";
+
+                if (!d.cluster) {
+                    return "white";
+                }
+   
+                const random = gen.create(d.cluster);
+                const r = random.intBetween(50, 255);
+                const g = random.intBetween(50, 255);
+                const b = random.intBetween(50, 255);
+
+                return `rgb(${r}, ${g}, ${b})`;
+                // if (this.regex && this.regex.test(d.value)) {
+                //     return "red";
+                // }
+                // return "white";
             });
         },
         updatePoints(points) {
@@ -377,10 +493,10 @@ export default {
             this.g.selectAll(".annot")
             .attr("x", (d) => {
 
-                return getPos(d.position.x) + 10;
+                return getPos(d.position.x);
             })
             .attr("y", (d) => {
-                 return getPos(d.position.y) + 10;
+                 return getPos(d.position.y);
             });
         },
         updateSize() {
@@ -397,10 +513,27 @@ export default {
             .style("font-size", textSize + "px");
         },
         updateTextOpacity() {
+            
             const textOpacity = this.textOpacity / 100;
 
             this.g.selectAll(".annot")
-            .style("opacity", textOpacity);
+            .style("opacity", (d) => {
+                console.log("is clustering");
+                console.log(this.clustering);
+
+                if (this.clustering) {
+                    if (d.center) {
+                        console.log(d.center);
+                        return 1 * textOpacity;
+                    }
+                    else {
+                        return 0;
+                    }
+                }
+                else {
+                    return textOpacity;
+                }
+            });
         },
         zoomBy(amount) {
             this.zoom.scaleBy(this.svg.transition().duration(200), amount);
