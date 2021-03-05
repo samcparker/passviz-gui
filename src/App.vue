@@ -37,7 +37,7 @@ import UniverseContainer from "./components/UniverseContainer.vue";
 import Tabs from "./components/Tabs.vue";
 import GenerateLoad from "./components/GenerateLoad.vue";
 
-import PasswordUniverseGenerator from "./passworduniversegenerator";
+import PasswordUniverseGenerator from "./passworduniversegenerator.js";
 import Settings from "./components/Settings.vue";
 
 import storage from "./storage";
@@ -94,28 +94,58 @@ export default Vue.extend({
       if (externalServerEnabled) {
         externalServer = storage.getItem("externalServer");
       }
-
+       
       new PasswordUniverseGenerator().generate(passwords, externalServer)
-      .then((stars) => {
+        .then((stars) => {
+  
+          u.stars = stars;
+          u.computing = false;
+          u.visible = true;
+  
+        })
+        .catch((err) => {
+          console.error(err)
+          u.error = err;
+        });
 
-        // const results = {
-        //   stars: stars,
+
+      // this.$worker.run((generator) => {
+      //   const genClass = JSON.parse(generator);
+      //   new genClass().generate(passwords, externalServer)
+      //   .then((stars) => {
           
-        //   hover: false,
-        //   visible: true
-        // };
+      //     // handle new stars here
+      //     u.stars = stars;
+      //     u.computing = false;
+      //     u.visible = true;
+      //   })
+      //   .catch((err) => {
+      //     console.error(err);
+      //     u.error = err;
+      //   })
+        
+      // }, [JSON.stringify(PasswordUniverseGenerator)])
+      // .then(() => {
+      //   console.log("cool");
+      // });
 
-        u.stars = stars;
-        u.computing = false;
-        u.visible = true;
+      // this.$worker.run(() => {
+      //   new PasswordUniverseGenerator().generate(passwords, externalServer)
+      //   .then((stars) => {
+  
+  
+      //     u.stars = stars;
+      //     u.computing = false;
+      //     u.visible = true;
+  
+      //   })
+      //   .catch((err) => {
+      //     console.error(err)
+      //     u.error = err;
+      //   });
 
-      })
-      .catch((err) => {
-        console.error(err)
-        u.error = err;
-      });
+      // });
 
-        console.log("out:" , this.universes);
 
     },
     load(a: string) {

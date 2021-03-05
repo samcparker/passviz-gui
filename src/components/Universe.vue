@@ -5,14 +5,15 @@
       </svg>
         <div v-if="universe.hover" id="hover-overlay"></div>
 
-          <div style="position: absolute; left: 5px; bottom: 5px">
+          <div style="position: absolute; left: 5px; bottom: -24px">
           <v-text-field
             label="Search/Regex"
-            filled
-            dense
-            style="background-color: white"
+            color="white"
             @input="doRegex"
             v-model="regexInput"
+            solo
+            
+  
           ></v-text-field>
       </div>
 
@@ -64,7 +65,7 @@
           </div>
       </div>
 
-      <div style="position: absolute; right: 5px; top: 5px">
+      <div style="position: absolute; right: 5px; top: 5px; width: 220px">
    <v-expansion-panels popout>
       <v-expansion-panel>
         <v-expansion-panel-header>Graphical Controls</v-expansion-panel-header>
@@ -96,6 +97,24 @@
       </v-expansion-panel>
     </v-expansion-panels>
       </div>
+
+
+      <div style="position: absolute; left: 5px; top: 5px; width: 220px">
+   <v-expansion-panels popout>
+      <v-expansion-panel>
+        <v-expansion-panel-header>Clusters</v-expansion-panel-header>
+        <v-expansion-panel-content>
+            <v-subheader class="pl-0">
+            Amount
+            </v-subheader>
+          <v-slider min="1" max="10" v-model="clusterAmount" dense></v-slider>
+
+            <v-btn @click="doClusters">Process</v-btn>
+
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+    </v-expansion-panels>
+      </div>
   </div>
 </template>
 
@@ -104,7 +123,7 @@
 import * as d3 from "d3";
 import SelectionArea from "@simonwep/selection-js";
 // const clustering = require("density-clustering");
-
+import clustering  from "density-clustering";
 
 export default {
 
@@ -118,13 +137,29 @@ export default {
             selectionMade: false,
             selected: null,
             regexInput: null,
-            regex: null
+            regex: null,
+            clusterAmount: 3
         }
     },
     props: {
         universe: Object,
     },
     methods: {
+        doClusters() {
+            console.log("doing clusters with", this.clusterAmount);
+
+            // const dataset = [
+            //     [1,1],[0,1],[1,0],
+            //     [10,10],[10,13],[13,13],
+            //     [54,54],[55,55],[89,89],[57,55]
+            // ];
+
+                    
+            // const dbscan = new clustering.DBSCAN();
+            // // parameters: 5 - neighborhood radius, 2 - number of points in neighborhood to form a cluster
+            // const clusters = dbscan.run(dataset, 5, 2);
+            // console.log(clusters, dbscan.noise);
+        },
         doRegex() {
             if (this.regexInput == "") {
                     this.regex = null;

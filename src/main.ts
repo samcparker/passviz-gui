@@ -6,6 +6,9 @@ import '@mdi/font/css/materialdesignicons.css'
 
 Vue.config.productionTip = false;
 
+import VueWorker from "vue-worker";
+Vue.use(VueWorker);
+
 new Vue({
   vuetify,
   render: h => h(App)

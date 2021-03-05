@@ -35,7 +35,7 @@
     "src/**/*.vue",
     "tests/**/*.ts",
     "tests/**/*.tsx"
-, "src/passworduniversegenerator.js"  ],
+, "src/passworduniversegenerator.js", "src/workers/worker_generator.ts", "src/worker"  ],
   "exclude": [
     "node_modules"
   ]
