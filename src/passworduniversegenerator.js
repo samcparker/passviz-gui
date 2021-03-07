@@ -20,7 +20,7 @@ export default class PasswordUniverseGenerator {
             const zxcvbn = require("zxcvbn");
             const owasp = require("owasp-password-strength-test");
 
-            stars[i]["strengths"]["zxcvbn"] = zxcvbn(stars[i].value).score;
+            stars[i]["strengths"]["zxcvbn"] = zxcvbn(stars[i].value).score / 4;
             
             const owaspResult = owasp.test(stars[i].value);
             console.log(owaspResult);

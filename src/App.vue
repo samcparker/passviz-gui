@@ -61,6 +61,7 @@ export default Vue.extend({
       console.log(universe);
       const nu = JSON.parse(JSON.stringify(universe));
       nu.id = this.getId();
+      nu.hover = false;
       this.universes.push(nu);
     },
     getId() {
@@ -177,6 +178,7 @@ html, body {
 
 #right {
   background-color: #212121;
+  min-width: 220px;
 
 }
 

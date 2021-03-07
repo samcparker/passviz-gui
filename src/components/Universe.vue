@@ -220,7 +220,7 @@
 </template>
 
 <script>
-
+/* eslint-disable */
 
 import tinygradient from "tinygradient";
 import * as d3 from "d3";
@@ -545,6 +545,7 @@ export default {
                 // set password strengths
                 if (this.passwordStrengthing) {
                     const gradient = tinygradient("red", "green");
+                    console.log(d.strengths.zxcvbn);
                     if (this.selectedPasswordStrength == "owasp") {
                         return gradient.rgbAt(d.strengths.owasp);
                     }
@@ -563,7 +564,7 @@ export default {
                     return "white";
                 }
    
-                const random = gen.create(d.cluster);
+                const random = gen.create(d.cluster + 5);
                 const r = random.intBetween(50, 255);
                 const g = random.intBetween(50, 255);
                 const b = random.intBetween(50, 255);
@@ -598,6 +599,8 @@ export default {
         updatePosition() {
             const width = this.$refs.svg.clientWidth;
             const height = this.$refs.svg.clientHeight;
+
+            console.log(width);
 
             const spread = (this.spread - 100) * 0.01;
 
@@ -667,15 +670,21 @@ export default {
         },
         resetView() {
             this.svg.transition()
-                    .duration(750)
-                    .call(this.zoom.transform, d3.zoomIdentity);
+                .duration(750)
+                .call(this.zoom.transform, d3.zoomIdentity);
         },
         
     },
     mounted() {
          // Do d3.js stuff here
+
+
         this.svg = d3.select(this.$refs.svg);
         this.g = this.svg.append("g");
+
+        this.svg.on("resize", () => {
+            this.updatePosition();
+        })
 
         // Initialise Zoom here
         this.zoom = d3.zoom()
