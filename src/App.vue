@@ -60,8 +60,11 @@ export default Vue.extend({
     clone(universe) {
       console.log(universe);
       const nu = JSON.parse(JSON.stringify(universe));
-      nu.id = Date.now().toString(36) + Math.random().toString(36).substring(2);
+      nu.id = this.getId();
       this.universes.push(nu);
+    },
+    getId() {
+      return Date.now().toString(36) + Math.random().toString(36).substring(2);
     },
     remove(universe) {
 
@@ -148,9 +151,12 @@ export default Vue.extend({
 
 
     },
-    load(a: string) {
+    load(universeString: string) {
       console.log("loading");
-      console.log(a);
+      console.log(universeString);
+      const universe = JSON.parse(universeString);
+      universe.id = this.getId();
+      this.universes.push(universe);
     }
   }
 });

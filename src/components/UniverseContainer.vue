@@ -25,7 +25,8 @@ export default {
     methods: {
         clone(evt) {
             this.$emit("clone", evt);
-        }
+        },
+
     }
 }
 </script>

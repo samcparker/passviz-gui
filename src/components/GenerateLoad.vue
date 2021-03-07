@@ -104,6 +104,7 @@
             <v-file-input
               truncate-length="15"
               label="Universe file"
+              @change="setLoadFile"
             ></v-file-input>
           </v-form>
         </v-container>
@@ -150,16 +151,18 @@ export default {
       console.log("Generating...");
       console.log(this.passwords);
       console.log(this.amount);
-        this.$emit("generate", this.passwords.slice(0, this.amount), null);
+      this.$emit("generate", this.passwords.slice(0, this.amount), null);
       // pass the params
     },
     load() {
-      console.log("Loading...");
-      this.$emit("load", this.loadFile);
+      this.$emit("load", this.loaded);
     },
 
     setLoadFile(event) {
+      this.loaded = null;
       this.loadFile = event;
+
+      console.log(event);
 
       if (!this.loadFile) {
         return;
@@ -168,9 +171,9 @@ export default {
       const reader = new FileReader();
 
       
-      reader.readAsText(this.file, "UTF-8");
+      reader.readAsText(this.loadFile, "UTF-8");
       reader.onload = evt => {
-        this.loaded = JSON.parse(evt.target.result);
+        this.loaded = evt.target.result;
 
       };
       reader.onerror = evt => {

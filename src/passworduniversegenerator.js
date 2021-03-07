@@ -2,42 +2,53 @@ import axios from "axios";
 
 
 
-
 import PromiseWorker from "promise-worker";
 import Worker from "worker-loader!./worker";
 
 export default class PasswordUniverseGenerator {
-
+    
     constructor() {
         return;
+    }
+    
+    addStrengths(stars) {
+        for (let i = 0; i < stars.length; i++) {
+            
+            // const passwdqc = require("passwdqc");
+            // const jqueryComplexify = require("jquery.complexify");
+            stars[i]["strengths"] = {};
+            const zxcvbn = require("zxcvbn");
+            const owasp = require("owasp-password-strength-test");
+
+            stars[i]["strengths"]["zxcvbn"] = zxcvbn(stars[i].value).score;
+            
+            const owaspResult = owasp.test(stars[i].value);
+            console.log(owaspResult);
+            
+            // get number of passed tests out of total tests (7)
+            const owaspScore = owaspResult.passedTests.length / 7;
+            stars[i]["strengths"]["owasp"] = owaspScore;
+            console.log(owaspScore);
+
+            
+            // stars[i]["strengths"]["owasp"] = owasp(stars[i].value).score;
+            // star.strengths.passwdqc = passwdqc.check(star.value);
+            // star.strengths.jqueryComplexify = jqueryComplexify(star.value);
+        }
+        
+        console.log(stars);
+        return stars;
     }
 
     // Generate a new star universe. Promise return type.
     generate(passwords, externalServer) {
 
-        // if (externalServer) {
-        //     return new Promise((resolve, reject) => {
-        //         this.generateFromServer(passwords, externalServer)
-        //             .then((res) => {
-        //                 resolve(res);
-        //             })
-        //             .catch((err) => {
-        //                 reject(err);
-        //             });
-        //     });
-        // }
-        // return new Promise((resolve, reject) => {
-        //     const points = this.generateFromClient(passwords);
-
-        //     resolve(points);
-
-        //     // const dr = await spawn(new Worker("./workers/auth"))
-        // });
         return new Promise((resolve, reject) => {
             if (externalServer) {
                 // Generate from server
                 this.generateFromServer(passwords, externalServer)
-                .then(res => {
+                .then(stars => {
+                    const res = this.addStrengths(stars);
                     resolve(res);
                 })
                 .catch(err => {
@@ -48,8 +59,10 @@ export default class PasswordUniverseGenerator {
                 // Generate from client
                 // const stars = this.generateFromClient(passwords);
                 // resolve(stars);
-
-                resolve(this.generateFromClient(passwords));
+                
+                const stars = this.generateFromClient(passwords);
+                const res = this.addStrengths(stars);
+                resolve(res);
                 
    
             }
