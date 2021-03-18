@@ -43,6 +43,7 @@ import Settings from "./components/Settings.vue";
 import storage from "./storage";
 
 import loadedUniverse from "./assets/universes/universe.json";
+import loadedUniverse2 from "./assets/universes/universe_2.json";
 
 export default Vue.extend({
   name: "App",
@@ -60,10 +61,8 @@ export default Vue.extend({
   }),
   mounted() {
     // Load universe from file in universes/universe.pu
-
-    console.log(loadedUniverse);
-
     this.load(JSON.stringify(loadedUniverse));
+    this.load(JSON.stringify(loadedUniverse2));
   },
   methods: {
     clone(universe) {
