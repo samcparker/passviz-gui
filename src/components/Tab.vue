@@ -12,6 +12,9 @@
           {{ universe.error }}
       </span>
     </v-tooltip>
+        <p>
+            {{ universe.name }}
+        </p>
           <v-progress-linear
           v-if="!universe.error"
                 value="100"
@@ -54,7 +57,7 @@ export default {
             const universeCopy = JSON.parse(JSON.stringify(this.universe));
             universeCopy.hover = false;
             const data = JSON.stringify(universeCopy, null, 1);
-            await save(data, 'example.pu');
+            await save(data, this.universe.name+ ".pu");
         },
         clone() {
             if (this.universe.computing) return;

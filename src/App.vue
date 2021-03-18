@@ -42,6 +42,8 @@ import Settings from "./components/Settings.vue";
 
 import storage from "./storage";
 
+import loadedUniverse from "./assets/universes/universe.json";
+
 export default Vue.extend({
   name: "App",
 
@@ -56,9 +58,15 @@ export default Vue.extend({
     universes: [],
 
   }),
+  mounted() {
+    // Load universe from file in universes/universe.pu
+
+    console.log(loadedUniverse);
+
+    this.load(JSON.stringify(loadedUniverse));
+  },
   methods: {
     clone(universe) {
-      console.log(universe);
       const nu = JSON.parse(JSON.stringify(universe));
       nu.id = this.getId();
       nu.hover = false;
@@ -76,7 +84,7 @@ export default Vue.extend({
         }
       }
     },
-    generate(passwords: string[], earth: string) {
+    generate(passwords: string[], name: string) {
       // Add placeholder with cancel buttons etc
       const u = {
         id: Date.now().toString(36) + Math.random().toString(36).substring(2),
@@ -84,7 +92,8 @@ export default Vue.extend({
         computing: true,
         hover: false,
         visible: false,
-        error: null
+        error: null,
+        name: name
       };
       this.universes.push(u);
 
@@ -153,8 +162,6 @@ export default Vue.extend({
 
     },
     load(universeString: string) {
-      console.log("loading");
-      console.log(universeString);
       const universe = JSON.parse(universeString);
       universe.id = this.getId();
       this.universes.push(universe);

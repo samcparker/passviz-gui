@@ -23,20 +23,18 @@ export default class PasswordUniverseGenerator {
             stars[i]["strengths"]["zxcvbn"] = zxcvbn(stars[i].value).score / 4;
             
             const owaspResult = owasp.test(stars[i].value);
-            console.log(owaspResult);
-            
+ 
             // get number of passed tests out of total tests (7)
             const owaspScore = owaspResult.passedTests.length / 7;
             stars[i]["strengths"]["owasp"] = owaspScore;
-            console.log(owaspScore);
-
+  
             
             // stars[i]["strengths"]["owasp"] = owasp(stars[i].value).score;
             // star.strengths.passwdqc = passwdqc.check(star.value);
             // star.strengths.jqueryComplexify = jqueryComplexify(star.value);
         }
         
-        console.log(stars);
+
         return stars;
     }
 
@@ -85,7 +83,7 @@ export default class PasswordUniverseGenerator {
     
                  getDR(passwords).then(dr => {
                      const stars = [];
-                     console.log("got dr as", dr);
+
                     for (let i = 0; i < passwords.length; i++) {
                         const star = {
                             value: passwords[i],
@@ -134,15 +132,14 @@ export default class PasswordUniverseGenerator {
 
         return new Promise((resolve, reject) => {
             const formData = new FormData();
-            console.log(passwords)
-            console.log(passwords.length)
+
             formData.append("password_list", JSON.stringify(passwords));
 
             axios.post(`${externalServer}generate`, formData)
                 .then((res) => {
 
                     const stars = res.data.stars;
-                    console.log(stars);
+
                     resolve(stars);
                 })
                 .catch((err) => {

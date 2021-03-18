@@ -545,7 +545,6 @@ export default {
                 // set password strengths
                 if (this.passwordStrengthing) {
                     const gradient = tinygradient("red", "green");
-                    console.log(d.strengths.zxcvbn);
                     if (this.selectedPasswordStrength == "owasp") {
                         return gradient.rgbAt(d.strengths.owasp);
                     }
@@ -600,7 +599,6 @@ export default {
             const width = this.$refs.svg.clientWidth;
             const height = this.$refs.svg.clientHeight;
 
-            console.log(width);
 
             const spread = (this.spread - 100) * 0.01;
 

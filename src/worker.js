@@ -50,11 +50,11 @@ registerPromiseWorker((message) => {
   if(message.type === 'getDR') {
     const passwords = message.passwords;
 
-    console.log("getting dm");
+
     const dm = generateDistanceMatrix(passwords);
-    console.log("getting dr");
+
     const dr = generateDimensionalityReduction(dm);
-    console.log("finished dr");
+
     return dr;
   }
 });

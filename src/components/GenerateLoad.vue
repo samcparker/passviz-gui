@@ -30,13 +30,16 @@
         </v-card-title>
         <v-card-text>Generate a new universe.</v-card-text>
 
-        <v-container>
+        <v-container class="px-5">
           <v-form>
+            <v-text-field v-model="name" label="Universe name"></v-text-field>
             <v-file-input
               truncate-length="15"
               label="Password database"
               @change="setFile"
             ></v-file-input>
+
+
 
             <v-slider
               label="Amount used"
@@ -143,16 +146,13 @@ export default {
       passwords: null,
       totalPasswords: 1,
       amount: 100,
-      disabled: true
+      disabled: true,
+      name: ""
     };
   },
   methods: {
     generate() {
-      console.log("Generating...");
-      console.log(this.passwords);
-      console.log(this.amount);
-      this.$emit("generate", this.passwords.slice(0, this.amount), null);
-      // pass the params
+      this.$emit("generate", this.passwords.slice(0, this.amount), this.name);
     },
     load() {
       this.$emit("load", this.loaded);
@@ -161,8 +161,6 @@ export default {
     setLoadFile(event) {
       this.loaded = null;
       this.loadFile = event;
-
-      console.log(event);
 
       if (!this.loadFile) {
         return;
