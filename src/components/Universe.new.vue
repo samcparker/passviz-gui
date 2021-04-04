@@ -65,11 +65,6 @@
 
 <script>
 
-const Stardust = require("stardust-core");
-import StardustWebGL from "stardust-webgl";
-
-import * as d3 from "d3";
-
 export default {
 
     data: () => {
@@ -174,23 +169,25 @@ export default {
         }
     },
     mounted() {
+    //     const canvas = this.$refs.canvas;
+
+    //     const width = this.$refs.canvas.clientWidth;
+    //     const platform = Stardust.platform("webgl-2d", canvas, width, width);
+
+    //     const circleMark = Stardust.mark.circle(8);
+    //     const circles = Stardust.mark.create(circleMark, platform);
+
+    //     circles.data(this.universe.stars);
+
+
+    // // return pos * (width / 2) * spread + (width / 2);
+    //     circles.attr("center", d => [ d.position.x * width * 0.5 + width/2, d.position.y * width * 0.5 + width/2]);
+    //     circles.attr("radius", 2);
+    //     circles.attr("color", [ 0.3, 0.1, 0.7, 1 ]);
+
+    //     circles.render()
+
         const canvas = this.$refs.canvas;
-
-        const width = this.$refs.canvas.clientWidth;
-        const platform = Stardust.platform("webgl-2d", canvas, width, width);
-
-        const circleMark = Stardust.mark.circle(8);
-        const circles = Stardust.mark.create(circleMark, platform);
-
-        circles.data(this.universe.stars);
-
-
-    // return pos * (width / 2) * spread + (width / 2);
-        circles.attr("center", d => [ d.position.x * width * 0.5 + width/2, d.position.y * width * 0.5 + width/2]);
-        circles.attr("radius", 2);
-        circles.attr("color", [ 0.3, 0.1, 0.7, 1 ]);
-
-        circles.render()
 
     }
 

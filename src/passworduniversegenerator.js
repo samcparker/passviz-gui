@@ -39,12 +39,12 @@ export default class PasswordUniverseGenerator {
     }
 
     // Generate a new star universe. Promise return type.
-    generate(passwords, externalServer) {
+    generate(passwords, externalServer, drMethod, gmMethod) {
 
         return new Promise((resolve, reject) => {
             if (externalServer) {
                 // Generate from server
-                this.generateFromServer(passwords, externalServer)
+                this.generateFromServer(passwords, externalServer, drMethod, gmMethod)
                 .then(stars => {
                     const res = this.addStrengths(stars);
                     resolve(res);
@@ -128,12 +128,14 @@ export default class PasswordUniverseGenerator {
 
     
 
-    generateFromServer(passwords, externalServer) {
+    generateFromServer(passwords, externalServer, drMethod, gmMethod) {
 
         return new Promise((resolve, reject) => {
             const formData = new FormData();
 
             formData.append("password_list", JSON.stringify(passwords));
+            formData.append("dr_method", drMethod);
+            formData.append("gm_method", gmMethod);
 
             axios.post(`${externalServer}generate`, formData)
                 .then((res) => {

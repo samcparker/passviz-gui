@@ -28,8 +28,7 @@
         <v-card-title class="headline">
           Generate Universe
         </v-card-title>
-        <v-card-text>Generate a new universe.</v-card-text>
-
+        <v-card-text>Generate a new universe. * Will only be possible if external server enabled is true.</v-card-text>
         <v-container class="px-5">
           <v-form>
             <v-text-field v-model="name" label="Universe name"></v-text-field>
@@ -39,9 +38,7 @@
               @change="setFile"
             ></v-file-input>
 
-
-
-            <v-slider
+                      <v-slider
               label="Amount used"
               min="1"
               :max="totalPasswords"
@@ -50,6 +47,37 @@
               :disabled="disabled == 1"
             >
             </v-slider>
+
+            <v-row>
+              <v-col>
+                <v-select
+                 v-model="selectedDrMethod"
+                  :items="drMethods"
+                  label="Dimensionality Reduction Method*"
+                      item-text="name"
+                  item-value="value"
+                ></v-select>
+              </v-col>  
+            </v-row>
+            <v-row>
+              <v-col>
+                <v-select
+                  v-model="selectedGenerationMethod"
+                  :items="generationMethods"
+                  item-text="name"
+                  item-value="value"
+                  label="Universe Generation Method*"
+                  hint="Read docs for more detail. Recommended is Sampled Distance Matrix"
+                  persistent-hint
+        
+                ></v-select>
+
+              </v-col>  
+  
+            </v-row>
+
+
+
           </v-form>
         </v-container>
         <v-row> </v-row>
@@ -98,7 +126,7 @@
       </template>
       <v-card>
         <v-card-title class="headline">
-          Generate Universe
+          Load Universe
         </v-card-title>
         <v-card-text>Load a universe.</v-card-text>
 
@@ -137,8 +165,28 @@
 
 <script>
 export default {
+  props: {
+    externalServerEnabled: Boolean
+  },
   data: () => {
     return {
+      // generationMethods: ['Sampled Distance Matrix', 'IPCA', 'Character Dimensions', 'Full Distance Matrix', ],
+      generationMethods: [
+        {name: "Sampled Distance Matrix", value: "SDM"},
+        {name: "IPCA", value: "IPCA"},
+        {name: "Character Dimensions", value: "CD"},
+        {name: "Full Distance Matrix", value: "FDM"},
+      ],
+      selectedGenerationMethod: null,
+      
+      // drMethods: ['t-SNE', 'UMAP', 'MDS'],
+      drMethods: [
+        {name: "t-SNE", value: "TSNE"},
+        {name: "UMAP", value: "UMAP"},
+        {name: "MDS", value: "MDS"},
+      ],
+      selectedDrMethod: null,
+
       generateDialog: false,
       loadDialog: false,
       file: null,
@@ -147,12 +195,21 @@ export default {
       totalPasswords: 1,
       amount: 100,
       disabled: true,
-      name: ""
+      name: "",
+
+
     };
+  },
+  mounted() {
+    // Set selected generation method
+    this.selectedGenerationMethod = this.generationMethods[0];
+    this.selectedDrMethod = this.drMethods[0];
   },
   methods: {
     generate() {
-      this.$emit("generate", this.passwords.slice(0, this.amount), this.name);
+      const drMethod = this.selectedDrMethod.value;
+      const gmMethod = this.selectedGenerationMethod.value;
+      this.$emit("generate", this.passwords.slice(0, this.amount), this.name, drMethod, gmMethod);
     },
     load() {
       this.$emit("load", this.loaded);

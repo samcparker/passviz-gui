@@ -62,7 +62,7 @@ export default Vue.extend({
   mounted() {
     // Load universe from file in universes/universe.pu
     this.load(JSON.stringify(loadedUniverse));
-    this.load(JSON.stringify(loadedUniverse2));
+    // this.load(JSON.stringify(loadedUniverse2));
   },
   methods: {
     clone(universe) {
@@ -83,7 +83,7 @@ export default Vue.extend({
         }
       }
     },
-    generate(passwords: string[], name: string) {
+    generate(passwords: string[], name: string, drMethod: string, gmMethod: string) {
       // Add placeholder with cancel buttons etc
       const u = {
         id: Date.now().toString(36) + Math.random().toString(36).substring(2),
@@ -107,7 +107,7 @@ export default Vue.extend({
         externalServer = storage.getItem("externalServer");
       }
        
-      new PasswordUniverseGenerator().generate(passwords, externalServer)
+      new PasswordUniverseGenerator().generate(passwords, externalServer, drMethod, gmMethod)
         .then((stars) => {
   
           u.stars = stars;
