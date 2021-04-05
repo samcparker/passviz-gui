@@ -65,27 +65,4 @@ Once the server is enabled, any generation requests will be sent to the server.
 
 ## Contribution
 
-Contribution is always welcome. It will require knowledge of d3.js, Vue.js or Electron.
-
-I will give a brief description of each file here. Further details are given within the files themselves.
-- App.vue
-    - Holds the App of the project, being the UniverseContainer, GenerateLoad, Settings and Tabs.
-- passworduniversegenerator.ts
-    - Code to generate a universe. It calls the worker.js file if generating from the client side.
-- worker.js
-    - Parallel worker to generate the universe aysnchronously.
-- storage.ts
-    - Access the Electron storage or localStorage in browser.
-- components/
-    - GenerateLoad.vue
-        - Buttons and dialogs to generate and load the universe.
-    - Settings.vue
-        - Settings button and dialog to handle settings.
-    - Tabs.vue
-        - Holds all the tabs.
-    - Tab.vue
-        - Tab pertaining to the Universe object. Allows for deletion, cloning, saving and hiding/showing. It also includes information regarding the state of the universe (generating, generated, errored).
-    - UniverseContainer.vue
-        - Holds universe components.
-    - Universe.vue
-        - Universe object to display the universe. Contains controls like graphical controls and search queries.
+Read CONTRIBUTING.md
