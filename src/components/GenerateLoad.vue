@@ -170,7 +170,7 @@ export default {
   },
   data: () => {
     return {
-      // generationMethods: ['Sampled Distance Matrix', 'IPCA', 'Character Dimensions', 'Full Distance Matrix', ],
+      // Generation methods used.
       generationMethods: [
         {name: "Sampled Distance Matrix", value: "SDM"},
         {name: "IPCA", value: "IPCA"},
@@ -179,7 +179,7 @@ export default {
       ],
       selectedGenerationMethod: null,
       
-      // drMethods: ['t-SNE', 'UMAP', 'MDS'],
+      // Dimensionality reduction method used.
       drMethods: [
         {name: "t-SNE", value: "TSNE"},
         {name: "UMAP", value: "UMAP"},
@@ -201,20 +201,29 @@ export default {
     };
   },
   mounted() {
-    // Set selected generation method
+    // Set selected generation method and dimensionality reduction method
     this.selectedGenerationMethod = this.generationMethods[0];
     this.selectedDrMethod = this.drMethods[0];
   },
   methods: {
+    /**
+     * Emit a generate event to App.vue, which generates a universe.
+     */
     generate() {
       const drMethod = this.selectedDrMethod.value;
       const gmMethod = this.selectedGenerationMethod.value;
       this.$emit("generate", this.passwords.slice(0, this.amount), this.name, drMethod, gmMethod);
     },
+    /**
+     * Emit a load event to App.vue, which loads the given universe.
+     */
     load() {
       this.$emit("load", this.loaded);
     },
 
+    /**
+     * Set the load file of the universe.
+     */
     setLoadFile(event) {
       this.loaded = null;
       this.loadFile = event;
@@ -224,7 +233,6 @@ export default {
       }
 
       const reader = new FileReader();
-
       
       reader.readAsText(this.loadFile, "UTF-8");
       reader.onload = evt => {
@@ -237,7 +245,9 @@ export default {
       };
 
     },
-
+    /**
+     * Set the password file.
+     */
     setFile(event) {
       this.file = event;
 
@@ -247,7 +257,6 @@ export default {
       }
 
       const reader = new FileReader();
-
       
       reader.readAsText(this.file, "UTF-8");
       reader.onload = evt => {
@@ -256,9 +265,6 @@ export default {
         this.totalPasswords = this.passwords.length;
         this.amount = this.totalPasswords;
         this.disabled = false;
-
-
-
       };
       reader.onerror = evt => {
         this.disabled = true;
@@ -270,11 +276,6 @@ export default {
 </script>
 
 <style scoped>
-/* #button {
-    padding: 0;
-    width: 50%;
-} */
-
 v-btn {
   padding: 0;
   min-height: 100%;

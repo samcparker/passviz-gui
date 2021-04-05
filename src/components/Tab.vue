@@ -122,27 +122,40 @@ import { save } from "save-file";
 
 export default {
     props: {
+        // Universe object passed from App.vue.
         universe: Object,
         universeMerging: Boolean
     },
     methods: {
+        /**
+         * Merge function. Not in use.
+         */
         merge() {
             if (this.universe.computing) return;
             this.universe.merging = true;
             this.$emit("merge", this.universe);
         },
+        /**
+         * Save the universe object.
+         */
         async save() {
-            // this.$emit("save", this.universe);
             const universeCopy = JSON.parse(JSON.stringify(this.universe));
             universeCopy.hover = false;
             const data = JSON.stringify(universeCopy, null, 1);
             await save(data, this.universe.name+ ".pu");
         },
+        /**
+         * Emit a clone event to App.vue to clone this universe.
+         */
         clone() {
             if (this.universe.computing) return;
             this.$emit("clone", this.universe);
         },
+        /**
+         * Emit a remove event to App.vue to remove this universe.
+         */
         remove() {
+            // Give message to confirm user wants to actually remove universe.
             if (this.universe.computing) {
                 const conf = confirm("Are you sure you want to remove this universe? It hasn't finished computing.");
                 // TODO: Cancel computation on server side

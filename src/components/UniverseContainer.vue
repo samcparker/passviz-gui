@@ -16,13 +16,15 @@ export default {
         Universe
     },
     props: {
+        /**
+         * Object containing all universes
+         */
         universes: Array
     },
-    data: () => {
-        return {
-        }
-    },
     methods: {
+        /**
+         * Send Clone event to App.vue to clone sub-universe
+         */
         clone(evt) {
             this.$emit("clone", evt);
         },
@@ -32,10 +34,6 @@ export default {
 </script>
 
 <style>
-/* #universe-col {
-    padding: 0
-} */
-
 #uc {
     background-color: black;
 }

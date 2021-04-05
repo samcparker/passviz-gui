@@ -268,17 +268,31 @@ export default {
         universe: Object,
     },
     methods: {
+        /**
+         * Enabled Password Strength for stars in universe.
+         */
         doPasswordStrength() {
+            // Stop colouring individual stars.
             this.stopColouring();
             this.passwordStrengthing = true;
             this.updateColors();
         },
+        /**
+         * Stop colouring individual stars from clustering or strength.
+         */
         stopColouring() {
             this.clustering = false;
             this.passwordStrengthing = false;
             this.updateColors();
             this.updateTextOpacity();
         },
+        /**
+         * Run function to generate clusters and for each cluster find the star closest to the centre.
+         * 
+         * 
+         * TODO: Offload this to server side if user has external server enabled.
+         * TODO: Make this more efficient.
+         */
         doClusters() {
             this.stopColouring();
             this.clustering = true;
@@ -306,7 +320,7 @@ export default {
             }
 
 
-            // Give each star a new cluster
+            // Give each star a blank cluster
             for (let i = 0; i < stars.length; i++) {
                 stars[i].cluster = null;
                 stars[i].center = false;
@@ -382,6 +396,9 @@ export default {
             this.updateColors();
             this.updateTextOpacity();
         },
+        /**
+         * Enable regex and hide/show stars based off this.
+         */
         doRegex() {
             if (this.regexInput == "") {
                     this.regex = null;
@@ -394,7 +411,11 @@ export default {
             this.updateTextOpacity();
             this.updateOpacity();
         },
+        /**
+         * Start select feature.
+         */
         startSelect() {
+            // Disable panning or zooming
             this.setZoomable(false);
 
             const selection = new SelectionArea({
@@ -459,47 +480,42 @@ export default {
             });
 
 
-
+            // Once selection is stopped
             selection.on('stop', evt => {
                 this.selected = evt.store.selected;
-
+                // Remove selection object
                 selection.destroy();
                 this.setZoomable(true);
 
+                // Enable buttons for using selection like extract/stop.
                 this.selectionMade = true;
                 if (this.selected.length == 0) {
                     this.selectionMade = false;
                     return;
                 }
     
-
+                // Set the colour of selected stars to red
                 for (let i = 0; i < this.selected.length; i++) {
                     d3.select(this.selected[i]).style("fill", "red");
                 }
             });
         }, 
+        /**
+         * Clear selection.
+         */
         clearSelect() {
             this.selectionMade = false;
             this.selection = null;
             
             this.updateColors();
         },
+        /**
+         * Extract selection to new universe. Basically clones the universe but only on a subset.
+         */
         extractSelect() {
-            // Extract selection into its own universe - basically imitate cloning but replace the stars attribute
-
             const universe = JSON.parse(JSON.stringify(this.universe));
 
             const selection = [];
-
-            // Inefficient at the moment. The index of stars should be their name and this should be indexed instead
-            // for (let i = 0; i < this.selected.length; i++) {
-            //     for (let j = 0; j < this.universe.stars.length; i++) {
- 
-            //         if (this.universe.stars[j].value == d3.select(this.selected[i]).attr("value")) {
-            //             selection.push(this.universe.stars[j]);
-            //         } 
-            //     }
-            // }
 
             for (let i = 0; i < this.selected.length; i++) {
                 for (let j = 0; j < this.universe.stars.length; j++) {
@@ -517,6 +533,9 @@ export default {
             this.clearSelect();
 
         },
+        /**
+         * Enable/Disable zooming.
+         */
         setZoomable(zoomable) {
             if (zoomable) {
                 this.svg.call(this.zoom);
@@ -525,23 +544,28 @@ export default {
                 this.svg.on(".zoom", null);
             }
         },
+        /**
+         * Update the opacity of stars in the universe.
+         */
         updateOpacity() {
             this.svg.selectAll(".star").style("opacity", (d) => {
+                // Regex takes priority. If tests true to regex, it should be visible, else slightly hidden.
                 if (this.regex) {
                     if (this.regex.test(d.value)) {
                         return 1;
                     }
                     return .2;
                 }
+                // Otherwise show star at full opacity
                 return 1;
             });
         },
+        /**
+         * Update the colours of the star. This could be due to clustering or enabling of star strenghtp5.BandPass()
+         * To rremove this, use the stopColouring() function.
+         */
         updateColors() {
-
-
             this.svg.selectAll(".star").style("fill", (d) => {
-
-
                 // set password strengths
                 if (this.passwordStrengthing) {
                     const gradient = tinygradient("red", "green");
@@ -562,19 +586,20 @@ export default {
                 if (!d.cluster) {
                     return "white";
                 }
-   
+
+                // Set seed of random generator to d.cluster + 5 so that every star in cluster has same colour.
                 const random = gen.create(d.cluster + 5);
+                // Generate random colour
                 const r = random.intBetween(50, 255);
                 const g = random.intBetween(50, 255);
                 const b = random.intBetween(50, 255);
 
                 return `rgb(${r}, ${g}, ${b})`;
-                // if (this.regex && this.regex.test(d.value)) {
-                //     return "red";
-                // }
-                // return "white";
             });
         },
+        /**
+         *  Update all points in the universe.
+         */
         updatePoints(points) {
             this.g.selectAll(".star")
             .data(points, function(d) { return d.value; })
@@ -595,6 +620,9 @@ export default {
                 return d.value;
             });
         },
+        /**
+         * Update the position of stars in the universe. This will be down to the Spread graphical control being changed.
+         */
         updatePosition() {
             const width = this.$refs.svg.clientWidth;
             const height = this.$refs.svg.clientHeight;
@@ -624,6 +652,9 @@ export default {
                  return getPos(d.position.y);
             });
         },
+        /**
+         * Update the size of stars in the universe. This will be down to the star size parameter being changed.
+         */
         updateSize() {
             const starSize = 10 * this.starSize / 100;
             this.g.selectAll(".star")
@@ -631,12 +662,23 @@ export default {
                 return starSize;
             });
         },
+        /**
+         * Update the size of text in the universe. This will be down to text size parameter being changed.
+         */
         updateTextSize() {
             const textSize = 20 * this.textSize * 0.01;
 
             this.svg.selectAll(".annot")
             .style("font-size", textSize + "px");
         },
+        /**
+         * Update the text opacity of stars in the universe.
+         * 
+         * Text will have a different opacity based on three conditions:
+         * - All text is visible, base it off the text opacity parameter;
+         * - RegEx is enabled, only show text that matches this;
+         * - Clustering is enabled, only show the stars at the centre of the clusters.
+         */
         updateTextOpacity() {
         
             const textOpacity = this.textOpacity / 100;
@@ -663,9 +705,21 @@ export default {
                 }
             });
         },
+        /**
+         * Zoom in/out of the univere by `amount`.
+         * 
+         * Used primarly for zoom buttons in universe container.
+         * 
+         * @param {number} amount - amount to zoom by 
+         */
         zoomBy(amount) {
             this.zoom.scaleBy(this.svg.transition().duration(200), amount);
         },
+        /**
+         * Reset the view of the universe to the default view.
+         * 
+         * TODO: Fix it so it goes directly to the centre, as at the moment it is off to a side for some reason.
+         */
         resetView() {
             this.svg.transition()
                 .duration(750)
@@ -674,9 +728,6 @@ export default {
         
     },
     mounted() {
-         // Do d3.js stuff here
-
-
         this.svg = d3.select(this.$refs.svg);
         this.g = this.svg.append("g");
 

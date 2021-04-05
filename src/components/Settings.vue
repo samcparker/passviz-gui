@@ -68,16 +68,21 @@ export default {
       this.setSettings();
     },
     methods: {
-      // Set key to value in electron or web browser, whichever is being used
+      /**
+       * Get settings from the storage.ts class and load into this component.
+       */
       setSettings() {
         this.externalServerEnabled = storage.getItem("externalServerEnabled");
         this.externalServer = storage.getItem("externalServer");
       },
+      /**
+       * Save the settings into storage.
+       */
       saveSettings() {
-        
         storage.setItem("externalServerEnabled", this.externalServerEnabled);
         storage.setItem("externalServer", this.externalServer);
 
+        // Close dialog on save
         this.settingsDialog = false;
       },
 

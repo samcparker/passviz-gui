@@ -16,12 +16,19 @@ export default {
       }
   },
     props: {
+        // Array of universe
         universes: Array
     },
     methods: {
+        /**
+         * Emit clone event to App.vue
+         */
         clone(e) {
             this.$emit("clone", e);
         },
+        /**
+         * Emit Remove event to App.vue
+         */
         remove(e) {
             this.$emit("remove", e);
         },
