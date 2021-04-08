@@ -66,29 +66,30 @@ export default Vue.extend({
   },
   methods: {
     /**
-     * Normalise a list of stars objects.
+     * Normalise the points of a list of stars between -1 and 1.
      */
     normaliseStars(stars) {
-      // Get point from stars
-
-      console.log("NORMALISING");
+      console.log(stars);
       const points = [];
-      for (let i = 0; i < stars.length; i++) {
+      for (const i in stars) {
         const star  = stars[i];
-        points.push([star.position.x, star.position.y]);
+        points[star.value] = [star.position.x, star.position.y];
       }
+
 
       this.normalisePoints(points);
 
-      for (let i = 0; i < stars.length; i++) {
-        const star = stars[i];
-        star.position.x = points[i][0];
-        star.position.y = points[i][1];
+
+      for (const name in stars) {
+        const star = stars[name];
+        star.position.x = points[name][0];
+        star.position.y = points[name][1];
+  
       }
       return stars;
     },
     /**
-     * Take in an array of points which are just tuples containing X and Y and normalise between -1 and 1
+     * Manipulate the points array directly to normalise between -1 and 1.
      */
     normalisePoints(points) {
       // find max value
@@ -99,8 +100,8 @@ export default Vue.extend({
       let maxY = -Infinity;
       let minY = Infinity;
 
-      for (let i = 0; i < points.length; i++) {
-        const p = points[i];
+      for (const name in points) {
+        const p = points[name];
 
         if (p[0] > maxX) maxX = p[0];
         if (p[1] > maxY) maxY = p[1];
@@ -108,15 +109,16 @@ export default Vue.extend({
         if (p[1] < minY) minY = p[1];
       }
 
-      for (let i = 0; i < points.length; i++) {
-        const p = points[i];
-        points[i][0] = 2 * ((p[0] - minX) / (maxX - minX)) - 1;
-        points[i][1] = 2 * ((p[1] - minY) / (maxY - minY)) - 1;
+      for (const name in points) {
+        const p = points[name];
+        p[0] = 2 * ((p[0] - minX) / (maxX - minX)) - 1;
+        p[1] = 2 * ((p[1] - minY) / (maxY - minY)) - 1;
       }
 
-      // return points;
-      
     },
+    /**
+     * Clone a universe object.
+     */
     clone(universe) {
       const nu = JSON.parse(JSON.stringify(universe));
       nu.stars = this.normaliseStars(nu.stars);
@@ -124,9 +126,15 @@ export default Vue.extend({
       nu.hover = false;
       this.universes.push(nu);
     },
+    /**
+     * Generate a random ID for the universe.
+     */
     getId() {
       return Date.now().toString(36) + Math.random().toString(36).substring(2);
     },
+    /**
+     * Remove the universe. Removes the universe with corresponding ID.
+     */
     remove(universe) {
 
       for (let i = 0; i < this.universes.length; i++) {
@@ -136,6 +144,9 @@ export default Vue.extend({
         }
       }
     },
+    /**
+     * Generate a universe with the corresponding parameters.
+     */
     generate(passwords: string[], name: string, drMethod: string, gmMethod: string) {
       // Add placeholder with cancel buttons etc
       const u = {
@@ -172,82 +183,52 @@ export default Vue.extend({
           console.error(err)
           u.error = err;
         });
-
-
-      // this.$worker.run((generator) => {
-      //   const genClass = JSON.parse(generator);
-      //   new genClass().generate(passwords, externalServer)
-      //   .then((stars) => {
-          
-      //     // handle new stars here
-      //     u.stars = stars;
-      //     u.computing = false;
-      //     u.visible = true;
-      //   })
-      //   .catch((err) => {
-      //     console.error(err);
-      //     u.error = err;
-      //   })
-        
-      // }, [JSON.stringify(PasswordUniverseGenerator)])
-      // .then(() => {
-      //   console.log("cool");
-      // });
-
-      // this.$worker.run(() => {
-      //   new PasswordUniverseGenerator().generate(passwords, externalServer)
-      //   .then((stars) => {
-  
-  
-      //     u.stars = stars;
-      //     u.computing = false;
-      //     u.visible = true;
-  
-      //   })
-      //   .catch((err) => {
-      //     console.error(err)
-      //     u.error = err;
-      //   });
-
-      // });
-
-
     },
+    /**
+     * Load the contents of a file to a universe. Will first check if it is JSON and read as CSV if not.
+     * 
+     * TODO : Error message if neither JSON or CSV
+     */
     load(universeString: string) {
       let universe = null;
       try {
         universe = JSON.parse(universeString);
-        console.log("json");
-        console.log(universe);
+
+        const nStars = {};
+
+        for (let i = 0; i < universe.stars.length; i++) {
+          nStars[universe.stars[i].value] = universe.stars[i];
+        }
+
+        universe.stars = nStars;
       }
       // Erred so presumably CSV
       catch(err) {
         const lines = universeString.split("\n");
-        const points = [];
+        const stars = {};
         // Write all to points object from CSV
         for (let i = 0; i < lines.length; i++) {
           const current = lines[i].replace("\r", "").split("\t");
           const name = current[0];
           const xp = parseFloat(current[1]);
           const yp = parseFloat(current[2]);
-
-          points.push({
+          stars[name] = {
             value: name,
             position: {
               x: xp,
               y: yp
             }
-          });
+          };
         }
         universe = {
-          stars: points
+          "stars": stars
         }
 
 
       }
+
       
 
-      // this.normaliseStars(universe["stars"]);
       this.normaliseStars(universe["stars"]);
       universe["id"] = this.getId();
       universe["visible"] = true;

@@ -513,24 +513,39 @@ export default {
          * Extract selection to new universe. Basically clones the universe but only on a subset.
          */
         extractSelect() {
+            console.log("Extracting selection");
+            // Get cx and cy positions from each selected star. Quicker than finding star in universe array
             const universe = JSON.parse(JSON.stringify(this.universe));
-
-            const selection = [];
+            universe.stars = {};
 
             for (let i = 0; i < this.selected.length; i++) {
-                for (let j = 0; j < this.universe.stars.length; j++) {
-                    if (d3.select(this.selected[i]).attr("value") == this.universe.stars[j].value) {
-                        selection.push(this.universe.stars[j]);
-                    }
-                }
+                const name = d3.select(this.selected[i]).attr("value");
+                universe.stars[name] = this.universe.stars[name];
+
             }
 
-            universe.stars = selection;
 
             if (this.universe.computing) return;
 
             this.$emit("clone", universe);
             this.clearSelect();
+
+            // const selection = [];
+
+            // for (let i = 0; i < this.selected.length; i++) {
+            //     for (let j = 0; j < this.universe.stars.length; j++) {
+            //         if (d3.select(this.selected[i]).attr("value") == this.universe.stars[j].value) {
+            //             selection.push(this.universe.stars[j]);
+            //         }
+            //     }
+            // }
+
+            // universe.stars = selection;
+
+            // if (this.universe.computing) return;
+
+            // this.$emit("clone", universe);
+            // this.clearSelect();
 
         },
         /**
@@ -600,7 +615,14 @@ export default {
         /**
          *  Update all points in the universe.
          */
-        updatePoints(points) {
+        updatePoints(objectPoints) {
+            // turn objectPoints into list of points
+            const points = []
+            for (const name in objectPoints) {
+                const star = objectPoints[name];
+                points.push(star);
+            }
+
             this.g.selectAll(".star")
             .data(points, function(d) { return d.value; })
             .enter()
@@ -750,7 +772,7 @@ export default {
 
         this.setZoomable(true);
 
-        console.log(this.universe.stars);
+        console.log(this.universe);
 
         this.updatePoints(this.universe.stars);
         this.updatePosition();

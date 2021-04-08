@@ -50,7 +50,13 @@ export default class PasswordUniverseGenerator {
                 // Generate from server
                 this.generateFromServer(passwords, externalServer, drMethod, gmMethod)
                 .then(stars => {
-                    const res = this.addStrengths(stars);
+
+                    const nstars = {};
+
+                    for (let i = 0; i < stars.length; i++) {
+                        nstars[stars["value"]] = stars[i];
+                    }
+                    const res = this.addStrengths(nstars);
                     resolve(res);
                 })
                 .catch(err => {
@@ -96,7 +102,8 @@ export default class PasswordUniverseGenerator {
                                 y: dr[i][1],
                             }
                         };
-                        stars.push(
+                        // Set index of star to be the value of star
+                        stars[star.value](
                             star
                         );
                     }
