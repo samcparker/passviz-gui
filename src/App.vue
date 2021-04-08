@@ -65,8 +65,61 @@ export default Vue.extend({
     // this.load(JSON.stringify(loadedUniverse2));
   },
   methods: {
+    /**
+     * Normalise a list of stars objects.
+     */
+    normaliseStars(stars) {
+      // Get point from stars
+
+      console.log("NORMALISING");
+      const points = [];
+      for (let i = 0; i < stars.length; i++) {
+        const star  = stars[i];
+        points.push([star.position.x, star.position.y]);
+      }
+
+      this.normalisePoints(points);
+
+      for (let i = 0; i < stars.length; i++) {
+        const star = stars[i];
+        star.position.x = points[i][0];
+        star.position.y = points[i][1];
+      }
+      return stars;
+    },
+    /**
+     * Take in an array of points which are just tuples containing X and Y and normalise between -1 and 1
+     */
+    normalisePoints(points) {
+      // find max value
+      // find min value
+      // Only requires storing of max and min, not maxX, minX, maxY and minY because normalise entire point set
+      let maxX = -Infinity;
+      let minX = Infinity;
+      let maxY = -Infinity;
+      let minY = Infinity;
+
+      for (let i = 0; i < points.length; i++) {
+        const p = points[i];
+
+        if (p[0] > maxX) maxX = p[0];
+        if (p[1] > maxY) maxY = p[1];
+        if (p[0] < minX) minX = p[0];
+        if (p[1] < minY) minY = p[1];
+      }
+
+      for (let i = 0; i < points.length; i++) {
+        const p = points[i];
+        points[i][0] = 2 * ((p[0] - minX) / (maxX - minX)) - 1;
+        points[i][1] = 2 * ((p[1] - minY) / (maxY - minY)) - 1;
+      }
+
+      // return points;
+      
+    },
     clone(universe) {
       const nu = JSON.parse(JSON.stringify(universe));
+      nu.stars = this.normaliseStars(nu.stars);
       nu.id = this.getId();
       nu.hover = false;
       this.universes.push(nu);
@@ -109,8 +162,8 @@ export default Vue.extend({
        
       new PasswordUniverseGenerator().generate(passwords, externalServer, drMethod, gmMethod)
         .then((stars) => {
-  
-          u.stars = stars;
+          // Normalise stars
+          u.stars = this.normaliseStars(stars);
           u.computing = false;
           u.visible = true;
   
@@ -161,8 +214,43 @@ export default Vue.extend({
 
     },
     load(universeString: string) {
-      const universe = JSON.parse(universeString);
-      universe.id = this.getId();
+      let universe = null;
+      try {
+        universe = JSON.parse(universeString);
+        console.log("json");
+        console.log(universe);
+      }
+      // Erred so presumably CSV
+      catch(err) {
+        const lines = universeString.split("\n");
+        const points = [];
+        // Write all to points object from CSV
+        for (let i = 0; i < lines.length; i++) {
+          const current = lines[i].replace("\r", "").split("\t");
+          const name = current[0];
+          const xp = parseFloat(current[1]);
+          const yp = parseFloat(current[2]);
+
+          points.push({
+            value: name,
+            position: {
+              x: xp,
+              y: yp
+            }
+          });
+        }
+        universe = {
+          stars: points
+        }
+
+
+      }
+      
+
+      // this.normaliseStars(universe["stars"]);
+      this.normaliseStars(universe["stars"]);
+      universe["id"] = this.getId();
+      universe["visible"] = true;
       this.universes.push(universe);
     }
   }

@@ -608,17 +608,22 @@ export default {
             .classed("star", true)
             .attr("value", (d) => { return d.value; });
 
-            this.g.selectAll(".annot")
-            .data(points, function(d) { return d.value; })
-            .enter()
-            .append("text")
-            .classed("annot", true)
-            .attr("fill", function() {
-                return "white";
-            })
-            .text(function(d) {
-                return d.value;
-            });
+
+            // Do not show annotations when there are more than 20000 points
+            if (points.length < 20000) {
+                this.g.selectAll(".annot")
+                .data(points, function(d) { return d.value; })
+                .enter()
+                .append("text")
+                .classed("annot", true)
+                .attr("fill", function() {
+                    return "white";
+                })
+                .text(function(d) {
+                    return d.value;
+                });
+
+            }
         },
         /**
          * Update the position of stars in the universe. This will be down to the Spread graphical control being changed.
@@ -636,7 +641,9 @@ export default {
 
             this.g.selectAll(".star")
             .attr("cx", (d) => {
-                return getPos(d.position.x);
+                const x = getPos(d.position.x)
+                // if (Math.random() < 0.5) console.log(x);
+                return x;
             })
             .attr("cy", (d) => {
                 return getPos(d.position.y);
@@ -742,6 +749,8 @@ export default {
             });
 
         this.setZoomable(true);
+
+        console.log(this.universe.stars);
 
         this.updatePoints(this.universe.stars);
         this.updatePosition();
