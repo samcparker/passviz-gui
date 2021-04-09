@@ -69,11 +69,14 @@ export default Vue.extend({
      * Normalise the points of a list of stars between -1 and 1.
      */
     normaliseStars(stars) {
+      console.log("normalise");
       console.log(stars);
+
       const points = [];
-      for (const i in stars) {
-        const star  = stars[i];
-        points[star.value] = [star.position.x, star.position.y];
+      for (const name in stars) {
+        const star = stars[name];
+        // console.log(star);
+        points[name] = [star.position.x, star.position.y];
       }
 
 
@@ -121,10 +124,17 @@ export default Vue.extend({
      */
     clone(universe) {
       const nu = JSON.parse(JSON.stringify(universe));
-      nu.stars = this.normaliseStars(nu.stars);
-      nu.id = this.getId();
-      nu.hover = false;
-      this.universes.push(nu);
+      this.normaliseStars(nu.stars);
+      this.addUniverseObject(nu);
+    },
+    /**
+     * Add universe object, ensure it has correct attributes
+     */
+    addUniverseObject(u) {
+      u.id = this.getId();
+      u.hover = false;
+
+      this.universes.push(u);
     },
     /**
      * Generate a random ID for the universe.
@@ -230,9 +240,8 @@ export default Vue.extend({
       
 
       this.normaliseStars(universe["stars"]);
-      universe["id"] = this.getId();
       universe["visible"] = true;
-      this.universes.push(universe);
+      this.addUniverseObject(universe)
     }
   }
 });

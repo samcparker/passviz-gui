@@ -225,8 +225,10 @@
 import tinygradient from "tinygradient";
 import * as d3 from "d3";
 import SelectionArea from "@simonwep/selection-js";
-import clustering  from "density-clustering";
+
 import gen from "random-seed"; 
+import cluster from "../cluster";
+import storage from "../storage";
 
 export default {
     components: {
@@ -252,8 +254,8 @@ export default {
             minimumNeighbours: 2,
             numberOfNeighbourhoods: 3,
             clustering: false,
-            clusteringMethods: ["kMeans", "OPTICS", "DBSCAN"],
-            selectedClusteringMethod: "OPTICS",
+            clusteringMethods: ["kMeans", "DBSCAN"],
+            selectedClusteringMethod: "kMeans",
             passwordStrengths: ["owasp", "zxcvbn"],
             selectedPasswordStrength: "owasp",
             passwordStrengthing: false,
@@ -276,6 +278,7 @@ export default {
             this.stopColouring();
             this.passwordStrengthing = true;
             this.updateColors();
+
         },
         /**
          * Stop colouring individual stars from clustering or strength.
@@ -296,105 +299,140 @@ export default {
         doClusters() {
             this.stopColouring();
             this.clustering = true;
+            const externalServerEnabled = storage.getItem("externalServerEnabled");
+            let externalServer = null;
 
-            // make 2d array of all points wwhere first index is x pos and second is y pos for each star
-            const dataset = [];
-            const stars = this.universe.stars;
-            for (let i = 0; i < stars.length; i++) {
-                dataset.push([stars[i].position.x, stars[i].position.y]);
+            if (externalServerEnabled) {
+                externalServer = storage.getItem("externalServer");
             }
 
-            // Sort out clustering method
-            let clusters = null;
+
+
             if (this.selectedClusteringMethod == "DBSCAN") {
-                const dbscan = new clustering.DBSCAN();
-                clusters = dbscan.run(dataset, (this.neighbourhoodRadius / 1000), this.minimumNeighbours);
+                cluster.dbscan(this.universe.stars, (this.neighbourhoodRadius / 1000), this.minimumNeighbours, externalServer).then((response) => {
+                    processClustering(response);
+                });
             }
-            else if (this.selectedClusteringMethod == "OPTICS") {
-                const optics = new clustering.OPTICS();
-                clusters = optics.run(dataset, (this.neighbourhoodRadius / 1000), this.minimumNeighbours);
-            }
-            else {
-                const kmeans = new clustering.KMEANS();
-                clusters = kmeans.run(dataset, this.numberOfNeighbourhoods);
-            }
+            else if (this.selectedClusteringMethod == "kMeans") {
 
-
-            // Give each star a blank cluster
-            for (let i = 0; i < stars.length; i++) {
-                stars[i].cluster = null;
-                stars[i].center = false;
+                cluster.kmeans(this.universe.stars, this.numberOfNeighbourhoods, externalServer).then((response) => {
+                    console.log(response);
+                    processClustering(response);
+                });
             }
 
-            const means = {};
-
-            for (let i = 0; i < clusters.length; i++) {
-                // list of indices
-                const cluster = clusters[i];
-                const mean = [0, 0];
-                for (let j = 0; j < cluster.length; j++) {
-                    stars[cluster[j]].cluster = i;
-
-                    mean[0] += stars[cluster[j]].position.x;
-                    mean[1] += stars[cluster[j]].position.y;
-
+            /**
+             * Function to process clustering with the name-cluster pair provided by cluster.js.
+             */
+            const processClustering = (nameClusterObj) => {
+                for (const name in nameClusterObj) {
+                    this.universe.stars[name].cluster = nameClusterObj[name];
                 }
+                // Update the colours to show the clusters
+                this.updateColors();
 
-                mean[0] /= cluster.length;
-                mean[1] /= cluster.length;
+            }
+            // this.stopColouring();
+            // this.clustering = true;
+
+            // // make 2d array of all points wwhere first index is x pos and second is y pos for each star
+            // const dataset = [];
+            // const stars = this.universe.stars;
+            // for (let i = 0; i < stars.length; i++) {
+            //     dataset.push([stars[i].position.x, stars[i].position.y]);
+            // }
+
+            // // Sort out clustering method
+            // let clusters = null;
+            // if (this.selectedClusteringMethod == "DBSCAN") {
+            //     const dbscan = new clustering.DBSCAN();
+            //     clusters = dbscan.run(dataset, (this.neighbourhoodRadius / 1000), this.minimumNeighbours);
+            // }
+            // else if (this.selectedClusteringMethod == "OPTICS") {
+            //     const optics = new clustering.OPTICS();
+            //     clusters = optics.run(dataset, (this.neighbourhoodRadius / 1000), this.minimumNeighbours);
+            // }
+            // else {
+            //     const kmeans = new clustering.KMEANS();
+            //     clusters = kmeans.run(dataset, this.numberOfNeighbourhoods);
+            // }
 
 
-                means[i] = mean;
+            // // Give each star a blank cluster
+            // for (let i = 0; i < stars.length; i++) {
+            //     stars[i].cluster = null;
+            //     stars[i].center = false;
+            // }
+
+            // const means = {};
+
+            // for (let i = 0; i < clusters.length; i++) {
+            //     // list of indices
+            //     const cluster = clusters[i];
+            //     const mean = [0, 0];
+            //     for (let j = 0; j < cluster.length; j++) {
+            //         stars[cluster[j]].cluster = i;
+
+            //         mean[0] += stars[cluster[j]].position.x;
+            //         mean[1] += stars[cluster[j]].position.y;
+
+            //     }
+
+            //     mean[0] /= cluster.length;
+            //     mean[1] /= cluster.length;
+
+
+            //     means[i] = mean;
      
-            }
+            // }
 
-            // closestIndex will store the index of the closest point along with its position, new items wil be checked against this
-            const closestIndex = {};
-            // for each cluster and each point in the cluster, find closest to means[i]
-            for (let i = 0; i < clusters.length; i++) {
-                const cluster = clusters[i];
+            // // closestIndex will store the index of the closest point along with its position, new items wil be checked against this
+            // const closestIndex = {};
+            // // for each cluster and each point in the cluster, find closest to means[i]
+            // for (let i = 0; i < clusters.length; i++) {
+            //     const cluster = clusters[i];
        
-                for (let j = 0; j < cluster.length; j++) {
+            //     for (let j = 0; j < cluster.length; j++) {
              
-                    // cluster[j] is the index of the star in the stars array
-                    const starIndex = cluster[j];
-                    const x = stars[starIndex].position.x;
-                    const y = stars[starIndex].position.y;
+            //         // cluster[j] is the index of the star in the stars array
+            //         const starIndex = cluster[j];
+            //         const x = stars[starIndex].position.x;
+            //         const y = stars[starIndex].position.y;
 
-                    const testX = means[i][0];
-                    const testY = means[i][1];
+            //         const testX = means[i][0];
+            //         const testY = means[i][1];
 
 
-                    const d = Math.sqrt(Math.pow((testX - x), 2) + Math.pow((testY - y), 2));
+            //         const d = Math.sqrt(Math.pow((testX - x), 2) + Math.pow((testY - y), 2));
 
-                    // no values in closestIndex for this cluster, put straight in
+            //         // no values in closestIndex for this cluster, put straight in
 
-                    if (!closestIndex[i]) {
-                        closestIndex[i] = {
-                            index: starIndex,
-                            distance: d
-                        };
-                    }
-                    // values are already in closestIndex for this cluster, calculate if closer
-                    else {
-                        if (d < closestIndex[i].d) {
-                            // closer to mean than previous one
+            //         if (!closestIndex[i]) {
+            //             closestIndex[i] = {
+            //                 index: starIndex,
+            //                 distance: d
+            //             };
+            //         }
+            //         // values are already in closestIndex for this cluster, calculate if closer
+            //         else {
+            //             if (d < closestIndex[i].d) {
+            //                 // closer to mean than previous one
 
-                            closestIndex[i].distance = d;
-                            closestIndex[i].index = starIndex;
-                        }
-                    }
-                }
-            }
+            //                 closestIndex[i].distance = d;
+            //                 closestIndex[i].index = starIndex;
+            //             }
+            //         }
+            //     }
+            // }
             
-            for (let i = 0; i < clusters.length; i++) {
-                const closest = closestIndex[i].index;
+            // for (let i = 0; i < clusters.length; i++) {
+            //     const closest = closestIndex[i].index;
 
-                stars[closest].center = true;
-            }
+            //     stars[closest].center = true;
+            // }
 
-            this.updateColors();
-            this.updateTextOpacity();
+            // this.updateColors();
+            // this.updateTextOpacity();
         },
         /**
          * Enable regex and hide/show stars based off this.
@@ -513,40 +551,29 @@ export default {
          * Extract selection to new universe. Basically clones the universe but only on a subset.
          */
         extractSelect() {
-            console.log("Extracting selection");
             // Get cx and cy positions from each selected star. Quicker than finding star in universe array
-            const universe = JSON.parse(JSON.stringify(this.universe));
-            universe.stars = {};
+            // const universe = JSON.parse(JSON.stringify(this.universe));
+            const selected = {};
 
             for (let i = 0; i < this.selected.length; i++) {
                 const name = d3.select(this.selected[i]).attr("value");
-                universe.stars[name] = this.universe.stars[name];
-
+                selected[name] = this.universe.stars[name];
             }
+            this.extractSelectFromStarsList(selected);
+        },
+        /**
+         * Extract selection from list. Takes in a list of stars and extracts those.
+         */
+        extractSelectFromStarsList(selectedStars) {
+            // Create a copy of current universe object
+            const universe = JSON.parse(JSON.stringify(this.universe));
 
+            universe.stars = selectedStars;
 
             if (this.universe.computing) return;
 
             this.$emit("clone", universe);
             this.clearSelect();
-
-            // const selection = [];
-
-            // for (let i = 0; i < this.selected.length; i++) {
-            //     for (let j = 0; j < this.universe.stars.length; j++) {
-            //         if (d3.select(this.selected[i]).attr("value") == this.universe.stars[j].value) {
-            //             selection.push(this.universe.stars[j]);
-            //         }
-            //     }
-            // }
-
-            // universe.stars = selection;
-
-            // if (this.universe.computing) return;
-
-            // this.$emit("clone", universe);
-            // this.clearSelect();
-
         },
         /**
          * Enable/Disable zooming.
@@ -623,6 +650,7 @@ export default {
                 points.push(star);
             }
 
+
             this.g.selectAll(".star")
             .data(points, function(d) { return d.value; })
             .enter()
@@ -630,6 +658,27 @@ export default {
             .classed("star", true)
             .attr("value", (d) => { return d.value; });
 
+            // Call when a star is clicked, e is the element and d is the data point
+            this.g.selectAll(".star").on("click", (e, d) => {
+                if (this.clustering) {
+                    const selectedCluster = d.cluster;
+                    const selected = {};
+
+
+
+                    const stars = this.universe.stars;
+                    for (const name in stars) {
+                        const star = stars[name];
+                        // Add to the list each star with this cluster
+                        if (star.cluster == selectedCluster) {
+                            selected[name] = star;
+                        }
+
+                    }
+
+                    this.extractSelectFromStarsList(selected);
+                }
+            });
 
             // Do not show annotations when there are more than 20000 points
             if (points.length < 20000) {
@@ -757,6 +806,9 @@ export default {
         
     },
     mounted() {
+        // Set selected clustering method to first item in list
+        // this.selectedClusteringMethod = this.clusteringMethods[0];
+
         this.svg = d3.select(this.$refs.svg);
         this.g = this.svg.append("g");
 
@@ -771,8 +823,6 @@ export default {
             });
 
         this.setZoomable(true);
-
-        console.log(this.universe);
 
         this.updatePoints(this.universe.stars);
         this.updatePosition();
