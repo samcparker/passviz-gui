@@ -134,6 +134,8 @@ export default Vue.extend({
       u.id = this.getId();
       u.hover = false;
 
+      if (!u.name) u.name = "Unnamed";
+
       this.universes.push(u);
     },
     /**

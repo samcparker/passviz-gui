@@ -14,8 +14,8 @@
                     {{ universe.error }}
                 </span>
             </v-tooltip>
-            <p class="mb-0" style="color: white">
-            {{ universe.name  || "No name" }}
+            <p class="mb-0" style="color: white" contenteditable="true" @input="rename" ref="name">
+            {{ universe.name }}
 
             </p>
         </div>
@@ -127,6 +127,10 @@ export default {
         universeMerging: Boolean
     },
     methods: {
+        rename() {
+            const newName = this.$refs.name.innerText;
+            this.universe.name = newName;
+        },
         /**
          * Merge function. Not in use.
          */

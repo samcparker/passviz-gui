@@ -99,7 +99,7 @@
                     </v-expansion-panel-header>
                     <v-expansion-panel-content>
                         <v-select :items="clusteringMethods" label="Clustering Method"
-                            v-model="selectedClusteringMethod"></v-select>
+                            v-model="selectedClusteringMethod" :disabled="generatingClusters"></v-select>
                         <span v-if="selectedClusteringMethod == 'kMeans'">
                             <!-- <v-subheader>Number of Neighbourhoods</v-subheader>
                             <v-slider v-model="numberOfNeighbourhoods" class="align-center" min="1" max="10"></v-slider> -->
@@ -120,6 +120,7 @@
         always-dirty
         min="1"
         max="20"
+        :disabled="generatingClusters"
       >
       </v-slider>
                         </span>
@@ -143,6 +144,7 @@
         always-dirty
         min="1"
         max="100"
+        :disabled="generatingClusters"
       >
       </v-slider>
 
@@ -163,17 +165,18 @@
                             always-dirty
                             min="1"
                             max="10"
+                            :disabled="generatingClusters"
                         ></v-slider>
 
                         </span>
 
                         <v-row no-gutters>
                             <v-col cols="6" class="px-0">
-                                <v-btn class="px-0" style="max-width: 100%" @click="stopColouring">Stop</v-btn>
+                                <v-btn class="px-0" style="max-width: 100%" @click="stopColouring">Hide</v-btn>
 
                             </v-col>
                             <v-col cols="6" class="px-0">
-                                <v-btn class="px-0" style="max-width: 100%" @click="doClusters">Process</v-btn>
+                                <v-btn class="px-0" style="max-width: 100%" @click="doClusters" :disabled="generatingClusters">Process</v-btn>
 
                             </v-col>
                         </v-row>
@@ -188,11 +191,11 @@
                             v-model="selectedPasswordStrength"></v-select>
                         <v-row no-gutters>
                             <v-col cols="6" class="px-0">
-                                <v-btn class="px-0" style="max-width: 100%" @click="stopColouring">Stop</v-btn>
+                                <v-btn class="px-0" style="max-width: 100%" @click="stopColouring">Hide</v-btn>
 
                             </v-col>
                             <v-col cols="6" class="px-0">
-                                <v-btn class="px-0" style="max-width: 100%" @click="doPasswordStrength">Process</v-btn>
+                                <v-btn class="px-0" style="max-width: 100%" @click="doPasswordStrength" :disabled="generatingClusters">Process</v-btn>
 
                             </v-col>
                         </v-row>
@@ -250,6 +253,7 @@ export default {
             regex: null,
             clusterAmount: 3,
             // dbscanNeighborhoodRadius: 7,
+            generatingClusters: false, // whether clusters are being generated or not. Used to disable process button
             neighbourhoodRadius: 7,
             minimumNeighbours: 2,
             numberOfNeighbourhoods: 3,
@@ -306,15 +310,14 @@ export default {
                 externalServer = storage.getItem("externalServer");
             }
 
-
-
+            this.generatingClusters = true;
             if (this.selectedClusteringMethod == "DBSCAN") {
                 cluster.dbscan(this.universe.stars, (this.neighbourhoodRadius / 1000), this.minimumNeighbours, externalServer).then((response) => {
                     processClustering(response);
                 });
             }
             else if (this.selectedClusteringMethod == "kMeans") {
-
+                
                 cluster.kmeans(this.universe.stars, this.numberOfNeighbourhoods, externalServer).then((response) => {
                     console.log(response);
                     processClustering(response);
@@ -325,6 +328,7 @@ export default {
              * Function to process clustering with the name-cluster pair provided by cluster.js.
              */
             const processClustering = (nameClusterObj) => {
+                this.generatingClusters = false;
                 for (const name in nameClusterObj) {
                     this.universe.stars[name].cluster = nameClusterObj[name];
                 }
