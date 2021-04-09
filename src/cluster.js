@@ -1,32 +1,20 @@
-import axios from "axios";
-import clustering  from "density-clustering";
-
 /**
- * Convert clusters object given by density_clustering package to array
+ * Set of cluster functions which run on the external server or client-side.
+ * 
+ * Makes use of worker-threads when needed to prevent program from stalling. 
  */
- const clustersToArray = function(clusters, length) {
-    const clustersArray = [];
-    // Set every item to have cluster of -1
-    for (let i = 0; i < length; i++) {
-        clustersArray[i] = -1;
-    }
 
-    // Give each star its cluster
-    for (const c in clusters) {
-        const cluster = clusters[c];
-        for (let i = 0; i < cluster.length; i++) {
-            clustersArray[cluster[i]] = c;
-        }
-    }
-    return clustersArray;
-}
+import axios from "axios";
+import PromiseWorker from "promise-worker";
+import Worker from "worker-loader!./worker";
 
 /**
+ * Run k-means on list of stars and return result as a promise.
  * 
  * @param {*} stars List of stars
  * @param {*} noClusters Number of clusters required
  * @param {*} externalServer Address of external server
- * @returns 
+ * @returns Promise where result is object where key is name and value is cluster.
  */
 const kmeans = function(stars, noClusters, externalServer) {
     // Convert `stars` into list of names and list of `positions`
@@ -63,7 +51,6 @@ const kmeans = function(stars, noClusters, externalServer) {
                     for (let i = 0; i < nameClusters.length; i++) {
                         nameClusterObj[nameClusters[i][0]] = nameClusters[i][1];
                     }
-                    console.log(nameClusterObj);
                     resolve(nameClusterObj);
                 })
                 .catch((err) => {
@@ -74,25 +61,40 @@ const kmeans = function(stars, noClusters, externalServer) {
     else {
         // Client side kmeans
         return new Promise((resolve, reject) => {
-            // Returns the a list of cluster numbers and indices pertaining to that cluster
-            const clusters = new clustering.KMEANS().run(positions, noClusters);
+            // Create PromiseWorker to do k-means as an extra worker, preventing program from stalling.
+            // Works particularly well with large data sets.
+            const worker = new Worker();
+            const promiseWorker = new PromiseWorker(worker);
 
-            const clusterArray = clustersToArray(clusters, names.length);
+            const getKmeans = (names, positions, noClusters) => promiseWorker.postMessage(
+                {
+                type: 'kmeans', 
+                names,
+                positions,
+                noClusters
+                }
+            );
+            // Resolve with response from worker
+            getKmeans(names, positions, noClusters).then(res => {
+                resolve(res);
+            });
 
-            // Pair cluster with name and return
-            const nameClusterObj = {};
-            for (let i = 0; i < names.length; i++) {
-                nameClusterObj[names[i]] = clusterArray[i]; // Set all clusters to be no cluster
-            }
 
-            resolve(nameClusterObj);
         });
     }
 
 }
 
 
-
+/**
+ * Run DBSCAN on the stars with given parameters.
+ * 
+ * @param {*} stars List of star objects 
+ * @param {float} neighbourhoodRadius DBSCAN parameter: neighbourhood radius
+ * @param {int} minimumNeighbours DBSCAN parameter: Minimum of neighbours
+ * @param {string} externalServer Address of external server, null if not used.
+ * @returns Promise where result is object where key is name and value is cluster.
+ */
 const dbscan = function(stars, neighbourhoodRadius, minimumNeighbours, externalServer) {
     // Convert `stars` into list of names and list of `positions`
     const names = [];
@@ -102,8 +104,6 @@ const dbscan = function(stars, neighbourhoodRadius, minimumNeighbours, externalS
         names.push(star.value);
         positions.push([star.position.x, star.position.y]);
     }
-    console.log(names);
-    console.log(positions);
     
     if (externalServer) {
         // Use external server
@@ -131,7 +131,6 @@ const dbscan = function(stars, neighbourhoodRadius, minimumNeighbours, externalS
                     for (let i = 0; i < nameClusters.length; i++) {
                         nameClusterObj[nameClusters[i][0]] = nameClusters[i][1];
                     }
-                    console.log(nameClusterObj);
                     resolve(nameClusterObj);
                 })
                 .catch((err) => {
@@ -142,18 +141,25 @@ const dbscan = function(stars, neighbourhoodRadius, minimumNeighbours, externalS
     else {
         // Client side dbscan
         return new Promise((resolve, reject) => {
-            // Returns the a list of cluster numbers and indices pertaining to that cluster
-            const clusters = new clustering.DBSCAN().run(positions, neighbourhoodRadius, minimumNeighbours);
+            // Create PromiseWorker to create an extra worker to generate the cluster.
+            // This allows for other stuff to be done while this is generating
 
-            const clusterArray = clustersToArray(clusters, names.length);
+            const worker = new Worker();
+            const promiseWorker = new PromiseWorker(worker);
 
-            // Pair cluster with name and return
-            const nameClusterObj = {};
-            for (let i = 0; i < names.length; i++) {
-                nameClusterObj[names[i]] = clusterArray[i]; // Set all clusters to be no cluster
-            }
-
-            resolve(nameClusterObj);
+            const getDBSCAN = (names, positions, minimumNeighbours, neighbourhoodRadius) => promiseWorker.postMessage(
+                {
+                type: 'dbscan', 
+                names,
+                positions,
+                minimumNeighbours,
+                neighbourhoodRadius
+                }
+            );
+            // Resolve with results from worker
+            getDBSCAN(names, positions, minimumNeighbours, neighbourhoodRadius).then(res => {
+                resolve(res);
+            });
         });
     }
 }

@@ -5,6 +5,7 @@
 import registerPromiseWorker from "promise-worker/register";
 import fastLevenshtein from "fast-levenshtein";
 import TSNE from "tsne-js";
+import clustering  from "density-clustering";
 
 /**
  * Generate a distance matrix from the list of passwords.
@@ -53,6 +54,60 @@ function generateDimensionalityReduction(distanceMatrix) {
   return output;
 
 }
+
+
+/**
+ * Convert clusters object given by density_clustering package to array
+ */
+ function clustersToArray(clusters, length) {
+  const clustersArray = [];
+  // Set every item to have cluster of -1
+  for (let i = 0; i < length; i++) {
+      clustersArray[i] = -1;
+  }
+
+  // Give each star its cluster
+  for (const c in clusters) {
+      const cluster = clusters[c];
+      for (let i = 0; i < cluster.length; i++) {
+          clustersArray[cluster[i]] = c;
+      }
+  }
+  return clustersArray;
+}
+
+function kmeans(names, positions, noClusters) {
+  //Returns the a list of cluster numbers and indices pertaining to that cluster
+  const clusters = new clustering.KMEANS().run(positions, noClusters);
+
+  const clusterArray = clustersToArray(clusters, names.length);
+
+  // Pair cluster with name and return
+  const nameClusterObj = {};
+  for (let i = 0; i < names.length; i++) {
+      nameClusterObj[names[i]] = clusterArray[i]; // Set all clusters to be no cluster
+  }
+
+  return nameClusterObj;
+}
+
+function dbscan(names, positions, neighbourhoodRadius, minimumNeighbours) {
+  const clusters = new clustering.DBSCAN().run(positions, neighbourhoodRadius, minimumNeighbours);
+
+  const clusterArray = clustersToArray(clusters, names.length);
+
+  // Pair cluster with name and return
+  const nameClusterObj = {};
+  for (let i = 0; i < names.length; i++) {
+      nameClusterObj[names[i]] = clusterArray[i]; // Set all clusters to be no cluster
+  }
+
+  return nameClusterObj;
+}
+
+
+
+
 /**
  * Register the promise worker. Required for the promise-worker package to work.
  */
@@ -64,5 +119,23 @@ registerPromiseWorker((message) => {
     const dr = generateDimensionalityReduction(dm);
 
     return dr;
+  }
+  else if (message.type === "kmeans") {
+    // const stars = message.stars;
+
+    const names = message.names;
+    const positions = message.positions;
+    const noClusters = message.noClusters;
+
+    return kmeans(names, positions, noClusters);
+
+  }
+  else if (message.type === "dbscan") {
+    const names = message.names;
+    const positions = message.positions;
+    const neighbourhoodRadius = message.neighbourhoodRadius;
+    const minimumNeighbours = message.minimumNeighbours;
+
+    return dbscan(names, positions, neighbourhoodRadius, minimumNeighbours);
   }
 });
