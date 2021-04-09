@@ -180,8 +180,21 @@
 
                             </v-col>
                         </v-row>
+                        <v-alert
+                        v-model="clusterErrorEnabled"
+                        class="mt-2"
+                        border="left"
+                        color="red"
+                        dismissible
+                        type="error"
+                        style="font-size: 10px"
+                        dense
+                        >
+                        Clustering error. Is the external server enabled?
+                        </v-alert>
                     </v-expansion-panel-content>
                 </v-expansion-panel>
+
                 <v-expansion-panel>
                     <v-expansion-panel-header>
                         Password Strength
@@ -263,6 +276,9 @@ export default {
             passwordStrengths: ["owasp", "zxcvbn"],
             selectedPasswordStrength: "owasp",
             passwordStrengthing: false,
+
+            // show cluster error if it happens
+            clusterErrorEnabled: false,
         }
     },
     // computed: {
@@ -303,6 +319,7 @@ export default {
         doClusters() {
             this.stopColouring();
             this.clustering = true;
+            this.clusterErrorEnabled = false;
             const externalServerEnabled = storage.getItem("externalServerEnabled");
             let externalServer = null;
 
@@ -312,15 +329,27 @@ export default {
 
             this.generatingClusters = true;
             if (this.selectedClusteringMethod == "DBSCAN") {
-                cluster.dbscan(this.universe.stars, (this.neighbourhoodRadius / 1000), this.minimumNeighbours, externalServer).then((response) => {
+                cluster.dbscan(this.universe.stars, (this.neighbourhoodRadius / 1000), this.minimumNeighbours, externalServer)
+                .then((response) => {
                     processClustering(response);
+                })
+                .catch((error) => {
+                    console.error(error);
+                    this.clusterErrorEnabled = true;
+                    this.generatingClusters = false;
                 });
             }
             else if (this.selectedClusteringMethod == "kMeans") {
                 
-                cluster.kmeans(this.universe.stars, this.numberOfNeighbourhoods, externalServer).then((response) => {
+                cluster.kmeans(this.universe.stars, this.numberOfNeighbourhoods, externalServer)
+                .then((response) => {
                     console.log(response);
                     processClustering(response);
+                })
+                .catch((error) => {
+                    console.error(error);
+                    this.clusterErrorEnabled = true;
+                    this.generatingClusters = false;
                 });
             }
 

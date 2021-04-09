@@ -16,8 +16,11 @@
             </v-tooltip>
             <p class="mb-0" style="color: white" contenteditable="true" @input="rename" ref="name">
             {{ universe.name }}
-
+            
             </p>
+            <span>
+                {{ Object.keys(universe.stars).length }} stars
+            </span>
         </div>
         <div  class="h-100">
             <v-btn icon color="white" x-small @click="remove" :disabled="universeMerging">
